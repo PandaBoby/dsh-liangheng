@@ -25,7 +25,9 @@ jobs:
       - run: npm test
       - name: build output is committed and current
         run: |
-          git diff --exit-code -- lib || {
-            echo '::error::lib/ differs from a fresh build — run npm run build and commit the result'
+          git status --porcelain -- lib
+          if [ -n "$(git status --porcelain -- lib)" ]; then
+            echo '::error::lib/ differs from a fresh build on this runner — run npm run build and commit the result'
+            git diff --stat -- lib
             exit 1
-          }
+          fi
