@@ -3,3 +3,4 @@ lib/types/.tsbuildinfo
 *.tsbuildinfo
 .DS_Store
 coverage/
+*.tgz

@@ -90,7 +90,9 @@
     "CHANGELOG.md",
     "LICENSE",
     "icon.svg",
-    "locale"
+    "locale",
+    "!**/*.test.ts",
+    "!**/*.test.mjs"
   ],
   "license": "Apache-2.0",
   "repository": {
@@ -98,6 +100,7 @@
     "url": "https://github.com/PandaBoby/dsh-liangheng.git"
   },
   "scripts": {
+    "prepublishOnly": "npm run build && npm test",
     "build": "tsc -b tsconfig.build.json && tsdown && node scripts/inline-css.mjs",
     "bundle": "tsdown",
     "watch": "tsdown --watch",
