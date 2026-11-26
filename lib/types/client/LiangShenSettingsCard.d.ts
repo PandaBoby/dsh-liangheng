@@ -67,8 +67,8 @@ export declare class LiangShenSettingsCardController {
     /** Release the card's scope subscription and bound stores. */
     dispose(): void;
 }
-/** Props the renderer binds for the LiangShen card. */
-export type LiangShenSettingsCardProps = PropsRuntime<'web-ui.plugin.item'> & PropsLocale<'liangshen'> & InjectFace<LiangShenSettingsCardFace>;
+/** Props the renderer binds for the LiangHeng card. */
+export type LiangShenSettingsCardProps = PropsRuntime<'web-ui.plugin.item'> & PropsLocale<'liangheng'> & InjectFace<LiangShenSettingsCardFace>;
 /**
  * Render the LiangShen card.
  * @param props - locale copy, the card snapshot, and its form actions.

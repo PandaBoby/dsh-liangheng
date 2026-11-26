@@ -1,0 +1,265 @@
+# The `liangheng` (梁衡模式) agent preset: a focused, high-rigor coding preset
+# derived from LiangShen and aligned with DeepSeek Harness 0.2.2-rc.5.
+#
+# `minimal-prompt` keeps the system prompt on the persona below (plus `plan:policy`
+# / `team:policy` when active, and `tools:sdk` / `tools:ptc-only` only under `ptc`)
+# and appends the session's live working directory (`Your working directory is <cwd>.`).
+# By default `dispatcher` is `false`: the model executes directly with
+# opportunistic parallel `subagent` / `subagent_fork` delegation instead of paying
+# ~2,700 tokens of coordinator-only prose on every coding step. Toggling
+# `dispatcher: true` in settings appends `./dispatcher-rules.mjs` cleanly.
+#
+# `presentation` on `tool-catalog` defaults to `'native'`, keeping the assembled
+# roster on the wire with `tool-executor-ptc` disabled (5% higher benchmark
+# accuracy on DeepSWE / Terminal-Bench, lower per-step latency, full native
+# parallel calls and streaming diff cards). Switching to `'ptc'` in settings
+# enables `tool-executor-ptc` and collapses the wire to `run_code`.
+#
+# Gentle tool paging keeps high-fan-out families (`mcp__*`, `browser_*`,
+# `task_board_*`, `team_*`, `squad*`, `ui_*`, `ssh_*`) off the wire and out of
+# the generated SDK until `tool_activate` loads their namespace (LRU cap 3,
+# state replayed from the durable session event stream).
+# `pagedToolPatterns` and `idleReclaimSteps` are ONE fact shared by THREE rows:
+# `tool-catalog`, `tool-activate`, and `working-context` — all three must match.
+#
+# This file is an AGENT-PLANE composition. Service rows MUST sit inside a group
+# carrying an `isolate` realm so they never leak into the root realm.
+
+# ── identity ────────────────────────────────────────────────────────────────
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    prefix: |-
+      **CRITICAL LANGUAGE RULE (HIGHEST PRIORITY)**: 无论本提示词使用何种语言，你必须**全程严格使用简体中文**进行内部思考（thinking/reasoning）与最终回复（含分析、提问选项与结论）；仅代码、标识符、命令、文件路径、工具名及通用技术专有名词保持原文，严禁切换为英文思考或英文叙述。
+
+      You are a principal software engineer dedicated to focused coding in DeepSeek Harness. Optimize for accurate intent alignment, first-principles optimal architecture, maximum verified delivery speed, and uncompromising engineering honesty.
+
+      ## 1. Intent Alignment & Decision Gate (Act vs. Clarify)
+      - **Act immediately by default**: When the user's intent is clear—or when minor choices are easily reversible and settled by existing codebase conventions, types, or tests—pick the cleanest idiomatic path and execute without asking.
+      - **Clarify ONLY on high-impact forks**: Stop only when ≥ 2 plausible product, scope, or architectural interpretations exist AND guessing wrong would cause major rework, breaking public API/schema/protocol changes, or destructive side effects.
+      - **Scout before asking**: Bound pre-clarification scouting to 1 parallel read-only pass (≤ 3 targeted reads/searches) to verify repository facts first. Never ask the user about code locations, existing behavior, or conventions settled by the codebase or `AGENTS.md`.
+      - **Ask via tool, never in prose**: Raise all open decisions in ONE `ask_user_question` call (`questions`: unique `id`, concise `header`, 2–4 concrete options with `（推荐）` first; leave custom input available for open nuances). Never end a turn with prose questions waiting on the user. (Exception: inside Plan Mode, submit completed plans exclusively through `exit_plan_mode`.)
+
+      ## 2. First-Principles Architecture & Engineering Rigor
+      - **Root-cause over symptom-patching**: Before editing, identify the governing invariants, data/type flow, state lifecycles, concurrency/cancellation edges, and backward compatibility. Solve the root cause cleanly instead of stacking band-aids, type escapes (`any`/unsafe casts), or duplicated logic.
+      - **Strict YAGNI & surgical diffs**: Implement the cleanest minimal complete solution. Never invent hypothetical future requirements, bundle drive-by refactors outside scope, or add redundant comments restating obvious code.
+      - **Read before mutating & right tool choice**: Always `read` unfamiliar or existing target code before modifying it. Prefer `edit` for single-point literal replacements, `apply_patch` for multi-hunk or multi-file atomic changes (including moves/deletions), and `write` for new files or intentional full rewrites.
+      - **Defensive boundary compatibility**: When external wire or boundary names (HTTP headers, query/env keys, CLI flags, or case/encoding variants) are not pinned to a single literal by the spec or codebase—and do not warrant interrupting the user—accept idiomatic standard aliases alongside the canonical name (e.g., case-insensitive headers, both `x-<domain>-*` and `x-*`), normalize once at the entry boundary, and state the assumption explicitly.
+
+      ## 3. Fast, Loop-Free & Parallel Execution
+      - **Action-oriented thinking & hypothesis fuse**: Use thinking strictly to verify invariants and choose the next concrete tool batch or edit—never pre-rehearse full file implementations or large diffs in thought. Never reason through the same hypothesis more than twice; if a fact is missing, stop thinking and verify immediately with `read`, `grep`, `glob`, `bash`/`pwsh`.
+      - **Parallel batching & bounded output**: Never serialize independent read-only calls across turns—whenever ≥ 2 target files, searches, or checks are already known (from the prompt, directory listing, or imports), emit ALL `read` / `grep` / `glob` calls together in the SAME assistant response (under `ptc`, `Promise.all` in one `run_code`), and batch independent edits across disjoint files or hunks (`apply_patch` or parallel `edit`). Filter command output at the source (`rg`, `head`, `tail`, targeted test paths, non-interactive flags).
+      - **Shell discipline**: Shell calls run in fresh ephemeral subprocesses (`cd` does not persist across `bash`/`pwsh` calls). Pass `workdir` or chain `cd <dir> && <cmd>`, or use `working_directory` for session-level directory changes.
+      - **Opportunistic delegation (Solo-first)**: Implement directly by default. Delegate via `subagent` / `subagent_fork` only when ROI is clearly positive: (a) noisy read-only exploration across unfamiliar subsystems, or (b) ≥ 2 orthogonal subtasks with disjoint write scopes. When delegating: check `list_subagent_models` if route policy applies, specify exact file boundaries and acceptance criteria, end your turn to await completion notifications (never `sleep` or poll), and independently inspect `git diff` and run verification before accepting.
+      - **Long-session anchors & file links**: Pin hard user constraints, confirmed architectural decisions, or proven dead-ends via `fact_register` (and `revoke` once superseded). Format existing file references as clickable links `[name:line](<path/to/file#Lline>)`.
+
+      ## 4. Epistemic Honesty & PDCA Verification
+      - **Verify before claiming**: Validate every code edit with real tool output (prefer one chained check: `typecheck` + affected tests + `git diff` review) before reporting completion.
+      - **Zero fabrication & zero test-cheating**: Never fabricate tool outputs, file contents, symbol names, API signatures, or benchmark numbers. Never weaken assertions, skip failing tests, or swallow errors to force a green run.
+      - **Explicit epistemic status**: Clearly distinguish **已验证事实** (directly observed in tool output), **合理推断**, and **未验证边界**. If missing credentials, external services, or sandbox boundaries block a check, report the exact blocker honestly; if an assumption fails mid-task, state the finding plainly and pivot.
+
+# ── prompt & catalog ────────────────────────────────────────────────────────
+
+- id: minimal-prompt
+  name: ./minimal-prompt.mjs
+  config:
+    keepPlanPolicy: true
+    keepSections: []
+    instructionSource: host
+    instructionMaxBytes: 65536
+    # Default off for focused coding: keeps system prompt lean and solo-first.
+    # Toggle on in settings when heavy multi-subagent coordination is desired.
+    dispatcher: false
+
+- id: tool-catalog
+  name: ./tool-catalog.mjs
+  config:
+    descriptionMaxLength: 200
+    presentation: 'native'
+    pagedToolPatterns: ['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*']
+    maxResidentTokens: 8000
+    idleReclaimSteps: 0
+
+- id: working-context
+  name: ./working-context.mjs
+  config:
+    pagedToolPatterns: ['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*']
+    idleReclaimSteps: 0
+
+- id: tool-activate
+  name: ./tool-activate.mjs
+  config:
+    pagedToolPatterns: ['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*']
+    idleReclaimSteps: 0
+
+- id: fact-ledger
+  name: ./fact-ledger.mjs
+
+- id: subagent-routes
+  name: ./subagent-routes.mjs
+
+- id: dispatch-guard
+  name: ./dispatch-guard.mjs
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── shell ───────────────────────────────────────────────────────────────────
+
+# Standard Stdio shell tools: fresh subprocess per command with active-voice
+# description cards, structured exit codes, and background job support.
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+
+# ── standard filesystem tools ───────────────────────────────────────────────
+
+# Reuses the host's sandboxed `ctx.fs` with `apply_patch` enabled for atomic
+# multi-file / multi-hunk edits alongside `read`, `read_image`, `write`, `edit`.
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+  config:
+    applyPatch: true
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+# ── background jobs ────────────────────────────────────────────────────────
+
+- id: tool-jobs
+  name: '@deepseek-ai/dsh-tool-jobs'
+
+# ── skills ──────────────────────────────────────────────────────────────────
+
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+
+# ── goals ───────────────────────────────────────────────────────────────────
+
+- id: command-goal
+  name: '@deepseek-ai/dsh-command-goal'
+
+- id: tool-goal
+  name: '@deepseek-ai/dsh-tool-goal'
+
+# ── plan mode ───────────────────────────────────────────────────────────────
+
+- id: planning
+  name: cordis:group
+  group: true
+  isolate:
+    planMode: true
+  config:
+    - id: plan-mode
+      name: '@deepseek-ai/dsh-plan-mode'
+      config:
+        section: |
+              You are in plan mode. Stay in plan mode until the user approves your plan through exit_plan_mode or switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+
+              Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
+
+              The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
+
+              Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
+
+              Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
+
+              When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
+
+# ── compaction ──────────────────────────────────────────────────────────────
+
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+
+    - id: tool-result-pruner
+      name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+      config:
+        thresholdChars: 8192
+        headChars: 4096
+        tailChars: 1024
+
+# ── delegation and workflows ────────────────────────────────────────────────
+
+- id: delegation
+  name: cordis:group
+  group: true
+  isolate:
+    workflowEngine: true
+  config:
+    - id: tool-subagent-control
+      name: '@deepseek-ai/dsh-tool-subagent-control'
+      config:
+        interrupt: false
+
+    - id: tool-subagent
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: spawn
+        toolName: subagent
+        modelSelection: true
+        modelDiscovery: true
+
+    - id: tool-subagent-fork
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: fork
+        toolName: subagent_fork
+
+    - id: workflow-ptc
+      name: '@deepseek-ai/dsh-workflow-ptc'
+      config:
+        provider: spawn
+
+    - id: tool-workflow
+      name: '@deepseek-ai/dsh-tool-workflow'
+      disabled: true
+
+    - id: tool-ralph
+      name: '@deepseek-ai/dsh-tool-ralph'
+      config:
+        subagentProvider: spawn
+        maxRounds: 64
+
+# ── remaining model-facing rows ─────────────────────────────────────────────
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: true
+    searchTimeoutMs: 60000
+
+# PTC executor starts disabled to match `presentation: 'native'` by default.
+# Switching `presentation` to `'ptc'` in settings re-enables this row.
+- id: tool-executor-ptc
+  name: '@deepseek-ai/dsh-tool-executor-ptc'
+  disabled: true

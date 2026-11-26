@@ -42,9 +42,10 @@ import {
   validatePagedToolPatterns,
 } from './paging.mjs'
 import { pagedNamespacesFor } from './tool-catalog.mjs'
+import { wirePresentationFor } from './wire-presentation.mjs'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-tool-activate'
+export const name = 'liangheng-tool-activate'
 
 /** The tools registry must exist before the activation tool can register. */
 export const inject = ['tools']
@@ -185,10 +186,15 @@ export function apply(ctx, config) {
       // as already active.
       const selfCallId = exec?.callId
       const events = sessionEvents(agent?.session).filter(event => !(
-        event?.type === 'tool/call'
-        && selfCallId !== undefined
-        && event.data?.name === 'tool_activate'
-        && String(event.data?.callId) === String(selfCallId)
+        selfCallId !== undefined
+        && (
+          (event?.type === 'tool/call'
+            && event.data?.name === 'tool_activate'
+            && String(event.data?.callId) === String(selfCallId))
+          || (event?.type === 'tool/ptc-dispatch'
+            && event.data?.name === 'tool_activate'
+            && String(event.data?.subCallId) === String(selfCallId))
+        )
       ))
       const projection = projectActivation(events, maxActiveNamespaces, pagedToolPatterns, namespace, idleReclaimSteps)
       if (projection.wasActive) {
@@ -196,9 +202,13 @@ export function apply(ctx, config) {
       }
 
       const tools = paged.get(namespace)
+      const presentation = wirePresentationFor(agent)
+      const reachabilityLine = presentation === 'ptc'
+        ? 'Its tools are available inside run_code as tools.<name>({ ... }) from the next request on.'
+        : 'Its tools are on the wire from the next request; call them directly by name.'
       const lines = [
         `Activated namespace "${namespace}" (${tools.length} tool${tools.length === 1 ? '' : 's'}): ${tools.join(', ')}.`,
-        'Its tools are on the wire from the next request; call them directly by name.',
+        reachabilityLine,
       ]
       for (const evicted of projection.evicted) {
         lines.push(`Least recently used namespace "${evicted}" was paged out (capacity ${maxActiveNamespaces}); its summary stays in the catalog and tool_activate can reload it.`)

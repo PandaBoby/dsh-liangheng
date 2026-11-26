@@ -3,14 +3,31 @@
 本文件格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循
 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [0.2.0] - 2026-11-26
 
-### Planned
+### Added
 
-- 处理 `lib/client.js` 对 `./style.css` 的静态 import（纯 Node ESM 无法加载），恢复与上游一致的内联形态。
-- `presets/liangshen` 其余运行时模块（`tool-catalog`、`minimal-prompt`、`dispatch-guard`、
-  `subagent-routes`、`fact-ledger`、`working-context`、`tool-activate`）的测试覆盖。
-- 用实测数据决定 `presentation` 的出厂默认值。
+- 独立的 **梁衡模式 (`liangheng`)** 品牌与命名空间（包名 `dsh-liangheng`、preset ID `liangheng`、`order: 5`、独立的设置与语言命名空间、客户端 `liangheng-lever` 槽位与遥测文案），可与 `@linxin666/dsh-liangshen` 并存而不冲突。
+- `presets/liangheng/minimal-prompt.mjs`：新增 `resolveSessionCwd()`（优先读取实况 `workingDirectory` 服务）、`filePathsFromExecution()`（支持 `apply_patch` 多文件/移动路径提取）以及 `TEAM_POLICY_SECTION_NAME` 放行。
+- `presets/liangheng/tool-catalog.mjs`：新增 `apply_patch`、`working_directory`、`web_fetch` 策展摘要，新增 `session/event` 监听器处理 `compaction/end` 空闲收回与 `tool/ptc-dispatch` / `tool/result` 同步。
+- 全面补齐测试覆盖：新增 `src/core/lever.test.ts` 与 `presets/liangheng/` 下 `subagent-routes`、`dispatch-guard`、`fact-ledger`、`working-context`、`tool-activate`、`tool-catalog`、`minimal-prompt` 7 个模块测试。
+
+### Changed
+
+- **专项编码 Persona 升级**（`presets/liangheng/agent.cordis.yml`）：强化意图对齐与 `ask_user_question` 单轮澄清门禁、第一性原理根因架构、严格 YAGNI、假设两轮熔断、主程直写优先 + 按需并行 `subagent` / `subagent_fork`，以及「已验证事实 / 合理推断 / 未验证边界」诚实铁律。
+- **出厂默认值与工具面全面对齐 DSH `0.2.2-rc.5`**：
+  - `presentation` 默认改为 `'native'`，出厂停用 `tool-executor-ptc`（设置页可切换回 `ptc`）；
+  - `dispatcher` 默认改为 `false`（关闭 24.6KB 重型调度规则块，设置页可按需开启）；
+  - 移除冗余 `str_replace_editor`，开启 `tool-fs` `applyPatch: true` 与 `tool-web` `fetch: true`；
+  - `tool-result-pruner` 阈值调回 `8192 / 4096 / 1024`；
+  - `tool-subagent-control` 默认设置 `interrupt: false`，移除已废弃的 `backgroundMode` / `enableRunInBackground` 遗留键，`plan-mode` 文案同步 `0.2.2-rc.5`。
+
+### Fixed
+
+- `subagent-routes.mjs`：修复 `routeParameterProbe` 未读取 `defineTool` 编译后的 `parameters.properties` 导致裸 `subagent` 调用绕过路由检查的问题；`inheritedRouteOf` 优先读取实况 `agent.model.current()`；通过 `agents` 注册表回溯父会话策略。
+- `dispatch-guard.mjs`：优先检查 `subagents.rootOf()` 与 `agents.roots()`，允许直接恢复的独立子会话作为根发起提问；监听 `subagent/start` 与 `subagent/end` 补全运行中子代理追踪（替代已移除的 `subagents.list`）；`isPureSleepCommand` 新增 `||` 分隔。
+- `tool-catalog.mjs`：修复 `tools/post-execute` 在 `native` `tool_activate` 报错时提前解除分页限制的时序竞态。
+- `fact-ledger.mjs` & `working-context.mjs`：过滤报错的原生 `tool/call` `fact_register` 调用，避免失败登记污染 `[Working Context: ...]`。
 
 ## [0.1.0] - 2026-11-26
 
@@ -18,23 +35,10 @@
 
 - 构建工具链：`tsconfig.json`、`tsconfig.build.json`、`tsdown.config.ts`、`vitest.config.ts`、`.gitignore`。
 - `.github/workflows/ci.yml`：`npm ci` → `build` → `typecheck` → `test`，并校验 `lib/` 与一次全新构建一致。
-- `presets/liangshen/paging.test.mjs`：30 个测试覆盖分页纯函数——pattern 校验、命名空间推导、
-  wire 划分、`withheldToolNames`、以及事件重放（LRU 驱逐、失败调用不生效、`ptc` dispatch 形态、
-  延迟空闲回收只在应用点触发）。
-- `src/composition.test.ts`：新增断言，出厂 `agent.cordis.yml` 的三处 `pagedToolPatterns` 与
-  `idleReclaimSteps` 必须一致。
+- `presets/liangshen/paging.test.mjs`：30 个测试覆盖分页纯函数。
+- `src/composition.test.ts`：校验三处 `pagedToolPatterns` 与 `idleReclaimSteps` 一致性。
 - 文档：中英双语 README、`CONTRIBUTING.md`、`CHANGELOG.md`、`.editorconfig`。
 
 ### Changed
 
-- 版本线从上游 `0.4.21` 重置为 `0.1.0`，与上游区分。
-- `repository.url` 修正为本仓库（此前指向上游组织的另一个仓库）。
-- `package.json`：`typecheck` 改用 `tsc --noEmit`；新增 `@tsdown/css@0.22.2`；`files` 增加 `lib/**/*.css`。
-- `src/composition.test.ts`：断言改为结构事实，不再逐字匹配上游 persona 文案。
-
-### Notes
-
-- 基线：`@linxin666/dsh-liangshen` v0.4.21（Apache-2.0）。
-- 与上游的唯一源码差异是 `presets/liangshen/agent.cordis.yml` 的 `persona.prefix`。
-- YAML anchor 在本仓库不可用：`src/composition.ts` 自带手写解析器，不支持别名。三处一致性因此由
-  测试守住，而不是由别名消除。
+- 版本线从上游 `0.4.21` 重置为 `0.1.0`，新增 `scripts/inline-css.mjs` 将客户端 CSS 内联进 `lib/client.js`。

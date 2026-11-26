@@ -23,8 +23,8 @@ const DRAG_THRESHOLD_PX = 14
 const BURST_MS = 2200
 
 /** Jackpot lines that read the same in every language. */
-const BINARY = '01001100 01001001 01000001 01001110 01000111'
-const MORSE = '-.. . . .--. ... . . -.- / .... .- .-. -. . ... ...'
+const PIPELINE = 'INTENT · INVARIANTS · VERIFIED DIFF'
+const STANDARD = 'FIRST-PRINCIPLES · HONEST · FAST'
 
 /** One spark per spoke of the burst. */
 const SPARKS = Array.from({ length: 14 }, (_, index) => index)
@@ -134,7 +134,7 @@ export function LiangShenLever(face: LeverFace): ReactElement | null {
   return (
     <span
       className={css.lever}
-      data-dsh-plugin="liangshen"
+      data-dsh-plugin="liangheng"
       data-dsh-part="lever"
       data-state={state}
       data-busy={busy ? 'true' : undefined}
@@ -192,8 +192,8 @@ function Burst({ face }: { face: LeverFace }): ReactElement {
         <span className={css.bannerName}>{face.t('lever.name')}</span>
         <span className={css.line}>{face.t('burst.line1')}</span>
         <span className={css.line}>{face.t('burst.line2')}</span>
-        <span className={css.code}>{BINARY}</span>
-        <span className={css.code}>{MORSE}</span>
+        <span className={css.code}>{PIPELINE}</span>
+        <span className={css.code}>{STANDARD}</span>
       </span>
       <span className={css.sparks}>
         {SPARKS.map(spoke => (

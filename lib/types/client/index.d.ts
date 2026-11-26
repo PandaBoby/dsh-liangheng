@@ -22,14 +22,13 @@ import type { ConfigForm, ConfigForms } from '@deepseek-ai/dsh-client-ui-setting
 import { type LiangShenSettings } from './LiangShenSettingsCard.tsx';
 import { type LiangShenKey } from './locales.ts';
 /** Locale namespace this half owns. */
-export declare const NS = "liangshen";
+export declare const NS = "liangheng";
 /**
  * Settings namespace the settings card edits: the family identity of this
  * plugin's own settings form, and the row id a standalone bundle install
- * carries. The aggregate install mounts the generated `web-ui-liangshen` row
- * instead, and the family binder resolves between the two.
+ * carries.
  */
-export declare const SETTINGS_NAMESPACE = "liangshen";
+export declare const SETTINGS_NAMESPACE = "liangheng";
 /**
  * The profile entry id this package's own row carries, for a page that serves
  * no family binder.
@@ -115,13 +114,13 @@ export interface LiangShenFormSpec<T> {
 export declare const inject: string[];
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
-        /** The LiangShen lever copy. */
-        'liangshen': LiangShenKey;
+        /** The LiangHeng lever copy. */
+        'liangheng': LiangShenKey;
     }
 }
 export { LiangShenLever } from './LiangShenLever.tsx';
 export { LeverController, type LeverFace, type LeverSnapshot } from './lever-controller.ts';
-export { LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts';
+export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts';
 /**
  * Mount the lever: register the copy, follow the roster and the current
  * session, and claim the composer tool row.

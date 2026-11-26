@@ -40,7 +40,7 @@
 import { sessionEvents } from './paging.mjs'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-subagent-routes'
+export const name = 'liangheng-subagent-routes'
 
 /**
  * Services this row reads.
@@ -171,12 +171,29 @@ export function authorizedRoutesFor(agent, sessions) {
 
 /**
  * The route an inherit-mode child would run on: the caller's own effective
- * request route. The latest request header owns it after a mid-session model
- * switch, with the creation options as the fallback before the first request.
+ * request route. Live `agent.model.current()` captures any mid-session
+ * selection before the next request header is written, followed by the latest
+ * request header, with creation options as fallback before the first request.
  * @param agent - Calling agent.
  * @returns the inherited route fields, each absent when its source omitted it.
  */
 export function inheritedRouteOf(agent) {
+  let current
+  try {
+    current = typeof agent?.model?.current === 'function' ? agent.model.current() : undefined
+  } catch {
+    current = undefined
+  }
+  const currentRecord = asRecord(current)
+  const currentProvider = asString(currentRecord?.['provider'])
+  const currentModel = asString(currentRecord?.['model'])
+  if (currentProvider !== undefined || currentModel !== undefined) {
+    return {
+      provider: currentProvider,
+      model: currentModel,
+      reasoningEffort: asString(currentRecord?.['reasoningEffort']),
+    }
+  }
   let header
   try {
     header = typeof agent?.session?.requestHeader === 'function' ? agent.session.requestHeader() : undefined
@@ -240,7 +257,11 @@ export function routeParameterProbe(tools, agent, toolName) {
   const definition = (Array.isArray(definitions) ? definitions : []).find(entry => entry?.name === toolName)
   const parameters = asRecord(definition?.parameters)
   if (parameters === undefined) return undefined
-  return parameters['provider'] !== undefined || parameters['model'] !== undefined
+  // `dsh-tools` `defineTool()` compiles parameters into JSON Schema `{ type: 'object', properties: { ... } }`,
+  // while flat test doubles may place parameter specs directly at the top level.
+  const properties = asRecord(parameters['properties'])
+  const fields = properties ?? parameters
+  return fields['provider'] !== undefined || fields['model'] !== undefined
 }
 
 /** Denial reason for a delegation that named a route on an inherit-only tool. */
@@ -352,12 +373,36 @@ export function delegationDenialReason(input) {
  * @returns a disposer that removes the guard, or undefined when the scope has
  *   no tool registry to guard.
  */
+function readService(ctx, serviceName) {
+  if (typeof ctx?.get !== 'function') return undefined
+  try {
+    return ctx.get(serviceName)
+  } catch {
+    return undefined
+  }
+}
+
 export function installSubagentRoutes(ctx, config = {}) {
   const tools = ctx?.tools
   if (typeof tools?.guard !== 'function') return undefined
   const explicitToolNames = Array.isArray(config.explicitTools) ? config.explicitTools : DEFAULT_EXPLICIT_TOOLS
   const inheritToolNames = Array.isArray(config.inheritTools) ? config.inheritTools : DEFAULT_INHERIT_TOOLS
-  const sessions = typeof ctx?.get === 'function' ? ctx.get('sessions') : undefined
+  const directSessions = readService(ctx, 'sessions')
+  const sessions = {
+    get: (id) => {
+      try {
+        const direct = directSessions?.get?.(id)
+        if (direct !== undefined) return direct
+      } catch {
+        // Fallback to live agents registry below
+      }
+      try {
+        return readService(ctx, 'agents')?.get?.(id)?.session
+      } catch {
+        return undefined
+      }
+    },
+  }
   return tools.guard(execution => delegationDenialReason({
     agent: execution?.agent,
     toolName: execution?.name,
@@ -381,5 +426,5 @@ export function apply(ctx, config = {}) {
     // A Host without the guard seam keeps the harness's own delegation behavior
     // instead of failing the preset's load.
     return dispose ?? (() => undefined)
-  }, 'liangshen: subagent route guard')
+  }, 'liangheng: subagent route guard')
 }

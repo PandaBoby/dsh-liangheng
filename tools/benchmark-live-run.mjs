@@ -46,7 +46,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const PACKAGE_ROOT = resolve(HERE, '..')
-const PRESET_SOURCE = join(PACKAGE_ROOT, 'presets', 'liangshen')
+const PRESET_SOURCE = join(PACKAGE_ROOT, 'presets', 'liangheng')
 const DRIVER = join(HERE, 'benchmark-driver.mjs').replace(/\\/g, '/')
 
 /** Fixed route every variant runs on, so the comparison isolates the preset. */

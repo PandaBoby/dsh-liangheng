@@ -21,7 +21,7 @@ import {
   type CompositionRow,
 } from './composition.ts'
 
-const presetDir = join(process.cwd(), 'presets', 'liangshen')
+const presetDir = join(process.cwd(), 'presets', 'liangheng')
 const shipped = readFileSync(join(presetDir, 'agent.cordis.yml'), 'utf8')
 
 /** The shipped composition parsed for the preset's own directory. */
@@ -79,18 +79,20 @@ describe('readCompositionRows', () => {
     // Given the tool-catalog row, When the operator reads its config, Then the
     // shipped scalars and the single-line flow sequence survive.
     const catalog = configOf(rowOf(rows(), 'tool-catalog'))
-    expect(catalog['presentation']).toBe('ptc')
+    expect(catalog['presentation']).toBe('native')
     expect(catalog['descriptionMaxLength']).toBe(200)
     expect(catalog['maxResidentTokens']).toBe(8000)
     expect(catalog['pagedToolPatterns']).toEqual(['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*'])
+    expect(configOf(rowOf(rows(), 'tool-fs'))['applyPatch']).toBe(true)
+    expect(configOf(rowOf(rows(), 'tool-web'))['fetch']).toBe(true)
+    expect(rowOf(rows(), 'tool-executor-ptc').disabled).toBe(true)
   })
 
-  it('operator reads the shipped dispatcher switch ON on the minimal-prompt row', () => {
+  it('operator reads the shipped dispatcher switch OFF on the minimal-prompt row', () => {
     // Given the factory composition, When the operator reads the minimal-prompt
-    // row, Then it declares `dispatcher: true`: the shipped default appends the
-    // dispatcher block, and the key is present so the overlay writes a value
-    // rather than inventing a key the row never carried.
-    expect(configOf(rowOf(rows(), 'minimal-prompt'))['dispatcher']).toBe(true)
+    // row, Then it declares `dispatcher: false`: the shipped default stays lean,
+    // and the key is present so the overlay writes a value rather than inventing one.
+    expect(configOf(rowOf(rows(), 'minimal-prompt'))['dispatcher']).toBe(false)
   })
 
   it('operator reads an empty third-party section allowlist by default', () => {
@@ -254,8 +256,8 @@ describe('readPresetMetadata', () => {
     // Given the shipped preset.yml, When the operator reads it, Then the
     // roster receives the display name, the sentence and the order rank.
     const metadata = readPresetMetadata(readFileSync(join(presetDir, 'preset.yml'), 'utf8'))
-    expect(metadata.name).toBe('梁神模式')
-    expect(metadata.order).toBe(4)
+    expect(metadata.name).toBe('梁衡模式')
+    expect(metadata.order).toBe(5)
     expect(metadata.description?.length).toBeGreaterThan(0)
   })
 
@@ -286,11 +288,10 @@ describe('applyPresetOverrides', () => {
   it('operator leaves the dispatcher key out of the row while the setting is unset', () => {
     // Given the shipped rows and no dispatcher choice, When the operator
     // applies the overlay, Then the minimal-prompt row keeps exactly the keys
-    // the composition declares: the switch is only ever written when a caller
-    // committed a value for it, never invented as a factory default.
-    const applied = applyPresetOverrides(rows(), { presentation: 'native' })
+    // the composition declares.
+    const applied = applyPresetOverrides(rows(), { presentation: 'ptc' })
     expect(rowOf(applied, 'minimal-prompt')).toEqual(rowOf(rows(), 'minimal-prompt'))
-    expect(configOf(rowOf(applied, 'minimal-prompt'))['dispatcher']).toBe(true)
+    expect(configOf(rowOf(applied, 'minimal-prompt'))['dispatcher']).toBe(false)
   })
 
   it('operator writes the dispatcher switch into the minimal-prompt row', () => {
@@ -298,12 +299,12 @@ describe('applyPresetOverrides', () => {
     // overlay, Then the minimal-prompt row carries it and the presentation key
     // in the tool-catalog row is untouched: the two settings are orthogonal,
     // and the row's other config keys survive.
-    const applied = applyPresetOverrides(rows(), { presentation: 'native', dispatcher: true })
+    const applied = applyPresetOverrides(rows(), { presentation: 'ptc', dispatcher: true })
     const prompt = configOf(rowOf(applied, 'minimal-prompt'))
     expect(prompt['dispatcher']).toBe(true)
     expect(prompt['keepPlanPolicy']).toBe(true)
     expect(prompt['instructionSource']).toBe('host')
-    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('native')
+    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('ptc')
     expect(rowOf(applied, 'working-context')).toEqual(rowOf(rows(), 'working-context'))
   })
 
@@ -327,12 +328,12 @@ describe('applyPresetOverrides', () => {
     expect(rowOf(native, 'tool-catalog').disabled).toBeUndefined()
   })
 
-  it('operator keeps the shipped ptc wire when no presentation is committed', () => {
+  it('operator keeps the shipped native wire when no presentation is committed', () => {
     // Given no committed presentation, When the overlay is applied, Then the
     // catalog row keeps the value the composition ships: the shipped default is
-    // the collapsed wire, and an absent setting never rewrites it.
+    // native, and an absent setting never rewrites it.
     const applied = applyPresetOverrides(rows(), {})
-    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('ptc')
+    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('native')
   })
 
   it('operator is never given a row the composition does not carry', () => {
@@ -374,7 +375,7 @@ describe('pagedToolPatterns override', () => {
     const lists = PAGING_ROWS.map(id => configOf(rowOf(applied, id))['pagedToolPatterns'])
     expect(new Set(lists).size, 'one array per row').toBe(PAGING_ROWS.length)
     // The row the value arrived with keeps its own keys.
-    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('ptc')
+    expect(configOf(rowOf(applied, 'tool-catalog'))['presentation']).toBe('native')
   })
 
   it('operator inherits the shipped list for blank text', () => {
@@ -406,10 +407,10 @@ describe('readPresetDefinition', () => {
   it('operator builds the declaration from the shipped preset directory', () => {
     // Given the bundled preset directory, When the operator reads its
     // declaration, Then it carries the display text and mountable module rows.
-    const definition = readPresetDefinition('liangshen', presetDir)
-    expect(definition.id).toBe('liangshen')
-    expect(definition.name).toBe('梁神模式')
-    expect(definition.order).toBe(4)
+    const definition = readPresetDefinition('liangheng', presetDir)
+    expect(definition.id).toBe('liangheng')
+    expect(definition.name).toBe('梁衡模式')
+    expect(definition.order).toBe(5)
     expect(definition.plugins.length).toBe(loose(rows()).length)
     for (const plugin of definition.plugins) {
       expect(plugin.name, JSON.stringify(plugin)).toMatch(/^(file:|@|\.\/|cordis:)/)

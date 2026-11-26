@@ -45,7 +45,7 @@
  */
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-dispatch-guard'
+export const name = 'liangheng-dispatch-guard'
 
 /**
  * Services this row declares.
@@ -173,8 +173,6 @@ function rootsOf(agents) {
 export function isDelegatedCaller(agent, ctx) {
   const caller = asRecord(agent)
   if (caller === undefined) return false
-  const header = asRecord(asRecord(caller['session'])?.['header'])
-  if (header?.['origin'] === 'subagent') return true
 
   const agents = readService(ctx, 'agents')
   const id = idOf(caller)
@@ -189,10 +187,9 @@ export function isDelegatedCaller(agent, ctx) {
     if (live !== agent) return false
   }
 
-  const roots = asRecord(agents) === undefined ? undefined : rootsOf(agents)
-  if (roots !== undefined) return !roots.includes(agent)
-
-  // Starting in 0.2.2-rc.2 `agents.roots()` was replaced by `subagents.rootOf(caller)`.
+  // Prefer live subagent tree authority first: a persisted child session resumed
+  // directly by the user as a top-level root still carries `origin: 'subagent'`
+  // in its header, yet `subagents.rootOf(caller) === caller` proves it IS the root.
   const subagents = readService(ctx, 'subagents')
   const rootOf = asRecord(subagents)?.['rootOf']
   if (typeof rootOf === 'function') {
@@ -203,7 +200,13 @@ export function isDelegatedCaller(agent, ctx) {
       return false
     }
   }
-  return false
+
+  const roots = asRecord(agents) === undefined ? undefined : rootsOf(agents)
+  if (roots !== undefined) return !roots.includes(agent)
+
+  // Fallback for test doubles that provide neither `subagents.rootOf` nor `agents.roots`.
+  const header = asRecord(asRecord(caller['session'])?.['header'])
+  return header?.['origin'] === 'subagent'
 }
 
 /**
@@ -229,7 +232,7 @@ function isNoopStatement(statement) {
 export function isPureSleepCommand(command) {
   if (typeof command !== 'string') return false
   const statements = command
-    .split(/;|&&|\n/u)
+    .split(/;|&&|\|\||\n/u)
     .map(statement => statement.trim())
     .filter(statement => statement.length > 0)
   if (statements.length === 0) return false
@@ -341,7 +344,7 @@ function sessionIdOf(agent) {
  * @param ctx - Host context carrying the optional `subagents` / `agents` services.
  * @returns whether a child of this caller is still running.
  */
-export function hasRunningChildSubagent(agent, ctx) {
+export function hasRunningChildSubagent(agent, ctx, activeRunsByParent) {
   const caller = asRecord(agent)
   if (caller === undefined) return false
 
@@ -351,6 +354,14 @@ export function hasRunningChildSubagent(agent, ctx) {
       return injected(agent) === true
     } catch {
       return false
+    }
+  }
+
+  const ownId = idOf(caller)
+  const headerId = sessionIdOf(caller)
+  if (activeRunsByParent instanceof Map) {
+    for (const key of [ownId, headerId]) {
+      if (key !== undefined && (activeRunsByParent.get(key)?.size ?? 0) > 0) return true
     }
   }
 
@@ -364,9 +375,7 @@ export function hasRunningChildSubagent(agent, ctx) {
   if (asRecord(agents) !== undefined) {
     const listed = callList(asRecord(agents)?.['list'], agents, agent, false)
     const parentIds = new Set()
-    const ownId = idOf(caller)
     if (ownId !== undefined) parentIds.add(ownId)
-    const headerId = sessionIdOf(caller)
     if (headerId !== undefined) parentIds.add(headerId)
     const running = entriesOf(listed).some((entry) => {
       const active = entry['status'] === 'running' || entry['running'] === true
@@ -411,6 +420,7 @@ export function dispatchDenialReason(input) {
     coordinatorTools = DEFAULT_COORDINATOR_TOOLS,
     shellTools = DEFAULT_SHELL_TOOLS,
     hasRunningChildren,
+    activeRunsByParent,
   } = asRecord(input) ?? {}
   if (typeof toolName !== 'string') return undefined
 
@@ -427,7 +437,7 @@ export function dispatchDenialReason(input) {
       try {
         running = typeof hasRunningChildren === 'function'
           ? hasRunningChildren(agent) === true
-          : hasRunningChildSubagent(agent, ctx)
+          : hasRunningChildSubagent(agent, ctx, activeRunsByParent)
       } catch {
         running = false
       }
@@ -458,15 +468,62 @@ export function installDispatchGuard(ctx, config = {}) {
     ? config.coordinatorTools
     : DEFAULT_COORDINATOR_TOOLS
   const shellTools = Array.isArray(config?.shellTools) ? config.shellTools : DEFAULT_SHELL_TOOLS
-  const dispose = register.call(tools, execution => dispatchDenialReason({
+
+  // Track active subagent runs by parentSessionId so external/one-shot backends
+  // (which never enter `agents.list()`) are still seen while running.
+  const activeRunsByParent = new Map()
+  const runToParent = new Map()
+  const offEvents = []
+  const listen = asRecord(ctx)?.['on']
+  if (typeof listen === 'function') {
+    try {
+      const offStart = listen.call(ctx, 'subagent/start', (info) => {
+        const parentId = typeof info?.parentSessionId === 'string' ? info.parentSessionId : undefined
+        const runId = typeof info?.runId === 'string' ? info.runId : undefined
+        if (parentId === undefined || runId === undefined) return
+        let runs = activeRunsByParent.get(parentId)
+        if (runs === undefined) {
+          runs = new Set()
+          activeRunsByParent.set(parentId, runs)
+        }
+        runs.add(runId)
+        runToParent.set(runId, parentId)
+      })
+      if (typeof offStart === 'function') offEvents.push(offStart)
+      const offEnd = listen.call(ctx, 'subagent/end', (info) => {
+        const runId = typeof info?.runId === 'string' ? info.runId : undefined
+        if (runId === undefined) return
+        const parentId = typeof info?.parentSessionId === 'string' ? info.parentSessionId : runToParent.get(runId)
+        runToParent.delete(runId)
+        if (parentId === undefined) return
+        const runs = activeRunsByParent.get(parentId)
+        if (runs === undefined) return
+        runs.delete(runId)
+        if (runs.size === 0) activeRunsByParent.delete(parentId)
+      })
+      if (typeof offEnd === 'function') offEvents.push(offEnd)
+    } catch {
+      // Optional event subscription: fail open.
+    }
+  }
+
+  const disposeGuard = register.call(tools, execution => dispatchDenialReason({
     agent: execution?.agent,
     toolName: execution?.name,
     args: execution?.arguments,
     ctx,
     coordinatorTools,
     shellTools,
+    activeRunsByParent,
   }))
-  return typeof dispose === 'function' ? dispose : () => undefined
+  return () => {
+    for (const off of offEvents) {
+      try { off() } catch {}
+    }
+    activeRunsByParent.clear()
+    runToParent.clear()
+    if (typeof disposeGuard === 'function') disposeGuard()
+  }
 }
 
 /**
@@ -482,6 +539,6 @@ export function apply(ctx, config = {}) {
   if (config?.enabled === false) return
   ctx.effect(
     () => installDispatchGuard(ctx, config) ?? (() => undefined),
-    'liangshen: dispatch execution guard',
+    'liangheng: dispatch execution guard',
   )
 }

@@ -20,7 +20,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 
-import { DISPATCHER_RULES, DISPATCHER_RULES_PROVENANCE } from '../presets/liangshen/dispatcher-rules.mjs'
+import { DISPATCHER_RULES, DISPATCHER_RULES_PROVENANCE } from '../presets/liangheng/dispatcher-rules.mjs'
 
 const require = createRequire(import.meta.url)
 const ORIGIN = DISPATCHER_RULES_PROVENANCE.package

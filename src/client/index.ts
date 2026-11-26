@@ -35,25 +35,22 @@ import { installPluginCard } from './plugin-card-seat.ts'
 import { createServedEntryForm } from './settings-entry-form.ts'
 
 /** Locale namespace this half owns. */
-export const NS = 'liangshen'
+export const NS = 'liangheng'
 
 /**
  * Settings namespace the settings card edits: the family identity of this
  * plugin's own settings form, and the row id a standalone bundle install
- * carries. The aggregate install mounts the generated `web-ui-liangshen` row
- * instead, and the family binder resolves between the two.
+ * carries.
  */
-export const SETTINGS_NAMESPACE = 'liangshen'
+export const SETTINGS_NAMESPACE = 'liangheng'
 
 /**
- * Profile entry id the family aggregate's generated row carries — the shape
- * nearly every user runs, and the id the shared-forms fallback binds when the
- * family binder cannot resolve the namespace.
+ * Profile entry id the family aggregate's generated row carries.
  */
-const AGGREGATE_ENTRY_ID = 'web-ui-liangshen'
+const AGGREGATE_ENTRY_ID = 'web-ui-liangheng'
 
 /** Profile entry ids this package's patch rows carry, most specific first. */
-const LIANGSHEN_ENTRY_IDS: readonly string[] = [AGGREGATE_ENTRY_ID, 'ui-liangshen', SETTINGS_NAMESPACE]
+const LIANGHENG_ENTRY_IDS: readonly string[] = [AGGREGATE_ENTRY_ID, 'ui-liangheng', SETTINGS_NAMESPACE]
 
 /**
  * The profile entry id this package's own row carries, for a page that serves
@@ -81,7 +78,7 @@ export function servedEntryId(forms: ConfigForms): string {
     served = undefined
   }
   if (served === undefined || served.length === 0) return AGGREGATE_ENTRY_ID
-  return LIANGSHEN_ENTRY_IDS.find(id => served.includes(id)) ?? SETTINGS_NAMESPACE
+  return LIANGHENG_ENTRY_IDS.find(id => served.includes(id)) ?? SETTINGS_NAMESPACE
 }
 
 /**
@@ -104,7 +101,7 @@ export function bindSettingsForm(ctx: ClientContext): ConfigForm<LiangShenSettin
   }
   return createServedEntryForm<LiangShenSettings>({
     forms: ctx.configForms,
-    entryIds: LIANGSHEN_ENTRY_IDS,
+    entryIds: LIANGHENG_ENTRY_IDS,
   })
 }
 
@@ -160,14 +157,14 @@ export const inject = ['slots', 'locale', 'sessions', 'configForms', 'remote', '
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    /** The LiangShen lever copy. */
-    'liangshen': LiangShenKey
+    /** The LiangHeng lever copy. */
+    'liangheng': LiangShenKey
   }
 }
 
 export { LiangShenLever } from './LiangShenLever.tsx'
 export { LeverController, type LeverFace, type LeverSnapshot } from './lever-controller.ts'
-export { LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts'
+export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts'
 
 /**
  * Mount the lever: register the copy, follow the roster and the current
@@ -181,10 +178,10 @@ export function apply(ctx: ClientContext): void {
     } catch {
       return () => {}
     }
-  }, 'liangshen: lever dictionaries')
+  }, 'liangheng: lever dictionaries')
 
   const controller = new LeverController(ctx)
-  ctx.effect(() => () => controller.dispose(), 'liangshen: lever controller')
+  ctx.effect(() => () => controller.dispose(), 'liangheng: lever controller')
   try {
     controller.start()
   } catch {
@@ -192,22 +189,21 @@ export function apply(ctx: ClientContext): void {
     // view still renders and reports what it knows.
   }
 
-  // Plugin configuration card: one staged form over the `liangshen` settings
-  // namespace, contributed to the Web UI plugin group beside the
-  // remote-access and task-board cards.
+  // Plugin configuration card: one staged form over the `liangheng` settings
+  // namespace, contributed to the Web UI plugin group or official bundle seat.
   try {
     const settingsCard = new LiangShenSettingsCardController(bindSettingsForm(ctx))
     // Card seat: the family group's list seat, or the official
     // bundle-configuration seat when the group is not installed.
     installPluginCard(ctx, {
-      bundle: '@linxin666/dsh-liangshen',
-      id: 'liangshen',
-      order: 120,
+      bundle: 'dsh-liangheng',
+      id: 'liangheng',
+      order: 125,
       locale: NS,
       inject: () => settingsCard.inject(),
       component: LiangShenSettingsCard,
     })
-    ctx.effect(() => () => { settingsCard.dispose() }, 'liangshen: settings card')
+    ctx.effect(() => () => { settingsCard.dispose() }, 'liangheng: settings card')
   } catch {
     // A missing settings surface leaves the lever working and the card absent;
     // one unavailable service must not take the browser half down.
@@ -217,8 +213,8 @@ export function apply(ctx: ClientContext): void {
     try {
       const unregister = ctx.slots.register({
         name: 'conversation.input.right',
-        id: 'liangshen-lever',
-        order: 20,
+        id: 'liangheng-lever',
+        order: 21,
         inject: () => controller.face(),
       }, LiangShenLever)
       return () => { unregister() }

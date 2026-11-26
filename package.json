@@ -1,7 +1,7 @@
 {
-  "name": "@linxin666/dsh-liangshen",
-  "description": "LiangShen (梁神) agent preset plus its composer lever for the dsh web GUI. The host half declares the bundled preset to the harness's agent-preset registry at activation (declare = enabled), so the preset is selectable for new sessions without writing anything into the harness home; the preset keeps a minimal persona with standing working discipline while the harness's own user-role agent-instructions injection delivers the workspace instructions (the optional `instructionSource: system-prompt` mode lifts them into the prompt instead), and declares one tool presentation for the session's whole lifetime: `ptc` by default (the wire collapses to `run_code` and every other tool is reached through the generated SDK), with `native` as the explicit assembled-roster option. High-fan-out tool families (default `['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*']`, while every host builtin stays resident; customizable via `pagedToolPatterns`) stay paged out of the wire and generated SDK until the preset's own `tool_activate` tool loads their namespace (LRU cap three, state replayed from the durable session event stream), and the tool catalog — exactly the reachable tools plus paged-out namespace summaries — and a one-line working-context projection travel as durable user messages republished only on change. The browser half adds a slot-machine lever left of the model selector on the new-session screen to toggle the mode. Hot-pluggable via cordis.patch.yml + profile symlink, no dsh source changes.",
-  "version": "0.1.0",
+  "name": "dsh-liangheng",
+  "description": "LiangHeng (梁衡模式) — a focused coding agent preset plus composer lever for the dsh web GUI. Ships with native wire presentation and high-signal solo-first coding discipline by default (with optional ptc and dispatcher toggles), gentle LRU tool paging via tool_activate, working-context & fact_register anchors, and DSH 0.2.2 route/dispatch guards. Hot-pluggable via cordis.patch.yml + profile link, no dsh source changes.",
+  "version": "0.2.0",
   "icon": "icon.svg",
   "type": "module",
   "engines": {
@@ -20,6 +20,8 @@
     },
     "./locale/en.json": "./locale/en.json",
     "./locale/zh.json": "./locale/zh.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
     "./package.json": "./package.json",
     "./presets/*": "./presets/*"
   },
@@ -79,13 +81,13 @@
     "lib/**/*.js.map",
     "lib/**/*.d.ts",
     "lib/**/*.d.ts.map",
-    "lib/**/*.css",
     "src",
     "presets",
     "tools",
     "cordis.patch.yml",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
+    "CHANGELOG.md",
     "LICENSE",
     "icon.svg",
     "locale"
@@ -96,7 +98,7 @@
     "url": "https://github.com/PandaBoby/dsh-liangheng.git"
   },
   "scripts": {
-    "build": "tsc -b tsconfig.build.json && tsdown",
+    "build": "tsc -b tsconfig.build.json && tsdown && node scripts/inline-css.mjs",
     "bundle": "tsdown",
     "watch": "tsdown --watch",
     "typecheck": "tsc --noEmit -p tsconfig.json",

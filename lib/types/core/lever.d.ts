@@ -13,7 +13,9 @@
  * blank — which is exactly the new-session screen it renders on.
  */
 /** The preset id this lever turns on; also the preset directory name. */
-export declare const LIANGSHEN_PRESET_ID = "liangshen";
+export declare const LIANGHENG_PRESET_ID = "liangheng";
+/** Backward-compatible alias for the preset id. */
+export declare const LIANGSHEN_PRESET_ID = "liangheng";
 /** What the lever currently reports. */
 export type LeverState = 
 /** LiangShen mode is the current preset. */
@@ -42,10 +44,10 @@ export declare function leverState(facts: LeverFacts): LeverState;
 /**
  * The preset a push-up restores: the preset the user was on before pulling the
  * lever, else the deployment default, else the first usable roster row that is
- * not the LiangShen preset. A candidate is skipped when it is the LiangShen
+ * not the LiangHeng preset. A candidate is skipped when it is the LiangHeng
  * preset itself (restoring it would be a no-op) or when the roster no longer
  * supplies it. That last resort is what keeps the push direction alive when the
- * deployment default IS LiangShen mode: `fallback` is skipped then, and after a
+ * deployment default IS LiangHeng mode: `fallback` is skipped then, and after a
  * reload `previous` is gone, so without it the gesture would have no target.
  */
 export declare function restoreTarget(facts: LeverFacts): string | undefined;

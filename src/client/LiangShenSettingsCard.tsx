@@ -118,10 +118,10 @@ export class LiangShenSettingsCardController {
   }
 }
 
-/** Props the renderer binds for the LiangShen card. */
+/** Props the renderer binds for the LiangHeng card. */
 export type LiangShenSettingsCardProps =
   PropsRuntime<'web-ui.plugin.item'>
-  & PropsLocale<'liangshen'>
+  & PropsLocale<'liangheng'>
   & InjectFace<LiangShenSettingsCardFace>
 
 /**
@@ -153,7 +153,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
       onDiscard={props.discard}
     >
       <BooleanField
-        id="settings-liangshen-enabled"
+        id="settings-liangheng-enabled"
         label={t('settings.enabled')}
         hint={t('settings.enabledHint')}
         onLabel={t('settings.on')}
@@ -164,7 +164,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
         onReset={() => { props.resetField('enabled') }}
       />
       <BooleanField
-        id="settings-liangshen-announce"
+        id="settings-liangheng-announce"
         label={t('settings.announceToAgent')}
         hint={t('settings.announceToAgentHint')}
         onLabel={t('settings.on')}
@@ -175,7 +175,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
         onReset={() => { props.resetField('announceToAgent') }}
       />
       <ChoiceField
-        id="settings-liangshen-presentation"
+        id="settings-liangheng-presentation"
         label={t('settings.presentation')}
         hint={t('settings.presentationHint')}
         choices={PRESENTATION_CHOICES.map(choice => ({ value: choice, label: t(`presentation.${choice}`) }))}
@@ -186,7 +186,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
         onReset={() => { props.resetField('presentation') }}
       />
       <BooleanField
-        id="settings-liangshen-dispatcher"
+        id="settings-liangheng-dispatcher"
         label={t('settings.dispatcher')}
         hint={t('settings.dispatcherHint')}
         onLabel={t('settings.on')}
@@ -197,7 +197,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
         onReset={() => { props.resetField('dispatcher') }}
       />
       <ValueField
-        id="settings-liangshen-paged-tool-patterns"
+        id="settings-liangheng-paged-tool-patterns"
         label={t('settings.pagedToolPatterns')}
         hint={t('settings.pagedToolPatternsHint')}
         placeholder="browser_*, task_board_*"
@@ -208,7 +208,7 @@ export function LiangShenSettingsCard(props: LiangShenSettingsCardProps) {
         onReset={() => { props.resetField('pagedToolPatterns') }}
       />
       <ValueField
-        id="settings-liangshen-idle-reclaim-steps"
+        id="settings-liangheng-idle-reclaim-steps"
         label={t('settings.idleReclaimSteps')}
         hint={t('settings.idleReclaimStepsHint')}
         placeholder="0"

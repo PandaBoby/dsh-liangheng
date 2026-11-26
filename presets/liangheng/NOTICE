@@ -1,0 +1,21 @@
+agent.cordis.yml 改编自 DeepSeek Harness 内置 Minimal、Standard 与 PTC preset（MIT）
+以及 @linxin666/dsh-liangshen v0.4.21（Apache-2.0，© zhu1090093659）。
+其 shell 段采用 DeepSeek Harness 标准 Stdio 栈：POSIX 挂 @deepseek-ai/dsh-tool-bash，
+win32 挂 @deepseek-ai/dsh-tool-pwsh，本 preset 不提供自研 shell 实现。
+minimal-prompt.mjs、tool-catalog.mjs、paging.mjs、tool-activate.mjs、working-context.mjs、
+fact-ledger.mjs、subagent-routes.mjs、dispatch-guard.mjs、dispatcher-rules.mjs 与
+wire-presentation.mjs 衍生自 @linxin666/dsh-liangshen（Apache-2.0）；其中的
+agent-instructions 引用提示沿用 https://github.com/xiaobright/dsh-anchored-standard
+（MIT）的实验结论，消息注入形状参照 DeepSeek Harness 的 skill catalog。
+
+[Apache-2.0 §4(b) 修改声明]
+本分支（dsh-liangheng / 梁衡模式）在 @linxin666/dsh-liangshen v0.4.21 基础上修改了：
+1. 独立包名、preset ID（liangheng）、设置/语言命名空间与客户端 UI 标识，可与上游插件共存；
+2. 专项编码 Persona，面向意图对齐、第一性原理最优解、原生并发速度与工程诚实；
+3. 出厂默认工具面与运行时对齐 DSH 0.2.2-rc.5（默认 native 呈现、默认关闭重型 dispatcher、
+   启用 apply_patch 与 web_fetch、移除 str_replace_editor、裁剪阈值 8192、禁用 interrupt_agent）；
+4. 修复了面向 DSH 0.2.2 的若干运行时缺陷（子代理路由 JSON Schema 探测、恢复子会话根判定、
+   subagent/start-end 运行中追踪、tool_activate 与 compaction/end 同步、原生 fact_register 报错过滤、
+   动态工作目录与 apply_patch 路径追踪）。
+
+原始 DeepSeek 版权和 MIT 许可声明见开源仓库；Apache-2.0 全文见根目录 LICENSE。

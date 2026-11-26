@@ -20,7 +20,7 @@ import type { ISessions } from '@deepseek-ai/dsh-api-session-controller/client'
 import { mainViewSessionId } from './main-session.ts'
 import type { RemoteResult } from '@deepseek-ai/dsh-api-remotes/client'
 import { createSnapshotStore, type SnapshotStore } from '@deepseek-ai/dsh-client-store'
-import { LIANGSHEN_PRESET_ID, isActionable, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts'
+import { LIANGHENG_PRESET_ID, isActionable, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts'
 import type { LiangShenKey } from './locales.ts'
 
 /**
@@ -51,7 +51,7 @@ export const SELECT_TIMEOUT_MS = 10_000
  * and the standalone row id — because disabling the plugin unregisters the
  * preset it declares.
  */
-export const ROSTER_SETTINGS_ENTRY_IDS: readonly string[] = ['agent-preset-registry', 'web-ui-liangshen', 'liangshen']
+export const ROSTER_SETTINGS_ENTRY_IDS: readonly string[] = ['agent-preset-registry', 'web-ui-liangheng', 'ui-liangheng', 'liangheng']
 
 /** What the lever view renders. */
 export interface LeverSnapshot {
@@ -202,7 +202,7 @@ export class LeverController {
   private translate(): Translator | undefined {
     const cached = this.cachedTranslate
     if (cached !== undefined) return cached
-    const bound = readService<Translator>(() => this.ctx.locale.bind('liangshen'))
+    const bound = readService<Translator>(() => this.ctx.locale.bind('liangheng'))
     if (typeof bound !== 'function') return undefined
     this.cachedTranslate = bound
     return bound
@@ -256,7 +256,7 @@ export class LeverController {
     if (remote === undefined) return
     const facts = this.facts()
     if (!isActionable(leverState(facts))) return
-    const target = direction === 'down' ? LIANGSHEN_PRESET_ID : restoreTarget(facts)
+    const target = direction === 'down' ? LIANGHENG_PRESET_ID : restoreTarget(facts)
     const sessionId = this.currentSessionId()
     if (target === undefined || sessionId === undefined) return
     if (facts.agentPreset === target) {
@@ -288,7 +288,7 @@ export class LeverController {
     // pull that turned the mode on.
     if (direction === 'down') {
       const prev = facts.agentPreset ?? this.detectPreset()
-      if (prev !== undefined && prev !== LIANGSHEN_PRESET_ID) {
+      if (prev !== undefined && prev !== LIANGHENG_PRESET_ID) {
         this.rememberPrevious(prev)
       }
     }
@@ -308,7 +308,7 @@ export class LeverController {
           ?? Array.from(document.querySelectorAll<HTMLElement>('button[aria-haspopup="menu"] span')).find(s => s.className.includes('seatLabel'))
         const text = chip?.textContent?.trim()
         if (text) {
-          const matched = this.rows.find(row => (row.name === text || row.id === text) && row.id !== LIANGSHEN_PRESET_ID)
+          const matched = this.rows.find(row => (row.name === text || row.id === text) && row.id !== LIANGHENG_PRESET_ID)
           if (matched) return matched.id
         }
       }
@@ -318,8 +318,8 @@ export class LeverController {
 
     try {
       if (typeof sessionStorage !== 'undefined') {
-        const stored = sessionStorage.getItem('dsh-liangshen:previous-preset')
-        if (stored && stored !== LIANGSHEN_PRESET_ID && this.rows.some(r => r.id === stored)) {
+        const stored = sessionStorage.getItem('dsh-liangheng:previous-preset')
+        if (stored && stored !== LIANGHENG_PRESET_ID && this.rows.some(r => r.id === stored)) {
           return stored
         }
       }
@@ -331,11 +331,11 @@ export class LeverController {
   }
 
   private rememberPrevious(presetId: string | undefined): void {
-    if (presetId === undefined || presetId === LIANGSHEN_PRESET_ID) return
+    if (presetId === undefined || presetId === LIANGHENG_PRESET_ID) return
     this.previous = presetId
     try {
       if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem('dsh-liangshen:previous-preset', presetId)
+        sessionStorage.setItem('dsh-liangheng:previous-preset', presetId)
       }
     } catch {
       // Defensive
@@ -360,7 +360,7 @@ export class LeverController {
 
     if (!blank) return { blank, agentPreset: currentPreset, available, fallback }
 
-    if (currentPreset !== undefined && currentPreset !== LIANGSHEN_PRESET_ID) {
+    if (currentPreset !== undefined && currentPreset !== LIANGHENG_PRESET_ID) {
       this.rememberPrevious(currentPreset)
     }
 

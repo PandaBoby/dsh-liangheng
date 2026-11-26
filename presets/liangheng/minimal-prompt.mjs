@@ -103,7 +103,7 @@ import { DISPATCHER_RULES, DISPATCHER_RULES_APPENDIX, DISPATCHER_RULES_WITH_APPE
 import { wirePresentationFor } from './wire-presentation.mjs'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-minimal-prompt'
+export const name = 'liangheng-minimal-prompt'
 
 /** Prompt assembly must exist before the section filter can register. */
 export const inject = ['systemPrompt']
@@ -117,6 +117,9 @@ export const PERSONA_SECTION_NAMES = ['deployment:persona-prefix', 'deployment:p
 
 /** Plan-mode policy section, owned by `@deepseek-ai/dsh-plan-mode`. */
 export const PLAN_POLICY_SECTION_NAME = 'plan:policy'
+
+/** Team-mode policy section, owned by `@deepseek-ai/dsh-tool-agent-team` (empty when off). */
+export const TEAM_POLICY_SECTION_NAME = 'team:policy'
 
 /**
  * Programmatic tool calling (PTC) prompt section names owned by `@deepseek-ai/dsh-tools`.
@@ -144,7 +147,7 @@ export const WORKSPACE_INSTRUCTIONS_VARIABLE = 'workspace_instructions'
 export const INSTRUCTION_SOURCES = ['host', 'system-prompt', 'hint']
 
 /** Tools whose executions touch workspace files and may trigger dynamic instruction discovery. */
-export const FILE_TOUCH_TOOL_NAMES = new Set(['read', 'write', 'edit', 'str_replace_editor'])
+export const FILE_TOUCH_TOOL_NAMES = new Set(['read', 'write', 'edit', 'str_replace_editor', 'apply_patch'])
 
 /**
  * Instruction file candidates per directory, in the harness's order: the
@@ -208,12 +211,14 @@ export const DISPATCHER_RULES_HEADING = [
   '',
   '---',
   '',
-  '## Dispatcher rules (a mode-level append)',
+  '## Dispatcher rules (opt-in coordinator mode)',
   '',
-  'You are this session\'s dispatcher: your deliverable is the plan, the task',
-  'book, the review verdict, and the hand-off — not the code written in your',
-  'place. The working discipline above stays in force; the rules below add',
-  'complexity triage, delegation discipline, and verification on top of it.',
+  'Dispatcher mode is active for this session: your deliverable is the plan,',
+  'the task book, the review verdict, and the hand-off — not code written on',
+  'a delegate\'s behalf. Where the base persona above defaults to solo-first',
+  'execution, the R0–R9 coordinator triage and delegation rules below take',
+  'precedence; its epistemic honesty, verification, and thinking-fuse rules',
+  'remain strictly in force.',
   '',
   '---',
   '',
@@ -503,31 +508,78 @@ export function instructionHintMessages(messages, state) {
   return kept
 }
 
+const PATCH_PATH_RE = /^\*\*\* (?:Add|Update|Delete) File: ([^\r\n]+)|^\*\*\* Move to: ([^\r\n]+)/gm
+
+/**
+ * Extract all touched file paths from a ToolExecution object.
+ * Supports:
+ * - `read`, `write`, `edit` via `exec.arguments.file_path`
+ * - `str_replace_editor` via `exec.arguments.path`
+ * - `apply_patch` via `exec.arguments.input` headers
+ */
+export function filePathsFromExecution(exec) {
+  if (!exec || typeof exec !== 'object') return []
+  if (typeof exec.name !== 'string') return []
+  if (typeof exec.arguments !== 'object' || exec.arguments === null) return []
+
+  if (exec.name === 'apply_patch') {
+    if (typeof exec.arguments.input !== 'string') return []
+    const paths = []
+    for (const match of exec.arguments.input.matchAll(PATCH_PATH_RE)) {
+      const candidate = (match[1] ?? match[2] ?? '').trim()
+      if (candidate.length > 0 && !paths.includes(candidate)) paths.push(candidate)
+    }
+    return paths
+  }
+
+  if (exec.name === 'str_replace_editor') {
+    if ('path' in exec.arguments && typeof exec.arguments.path === 'string') {
+      const p = exec.arguments.path.trim()
+      return p.length > 0 ? [p] : []
+    }
+    return []
+  }
+
+  if ('file_path' in exec.arguments && typeof exec.arguments.file_path === 'string') {
+    const p = exec.arguments.file_path.trim()
+    return p.length > 0 ? [p] : []
+  }
+
+  return []
+}
+
 /**
  * Extract touched file path from a ToolExecution object.
  * Synchronously extracts path from:
  * - `read`, `write`, `edit` via `exec.arguments.file_path`
  * - `str_replace_editor` via `exec.arguments.path`
+ * - `apply_patch` via `exec.arguments.input` (first touched file)
  * Supports both top-level and PTC nested executions without guessing code strings.
  */
 export function filePathFromExecution(exec) {
-  if (!exec || typeof exec !== 'object') return undefined
-  if (typeof exec.name !== 'string') return undefined
-  if (typeof exec.arguments !== 'object' || exec.arguments === null) return undefined
+  return filePathsFromExecution(exec)[0]
+}
 
-  if (exec.name === 'str_replace_editor') {
-    if ('path' in exec.arguments && typeof exec.arguments.path === 'string') {
-      const p = exec.arguments.path.trim()
-      return p.length > 0 ? p : undefined
+/**
+ * Resolve the effective working directory for an agent, preferring the live
+ * `workingDirectory` service (which tracks `working_directory({ cd })` calls)
+ * and falling back to `session.header.cwd`.
+ */
+export function resolveSessionCwd(agent, ctx) {
+  const session = agent?.session
+  if (session !== undefined && typeof ctx?.get === 'function') {
+    try {
+      const wd = ctx.get('workingDirectory')
+      if (typeof wd?.get === 'function') {
+        const live = wd.get(session)
+        if (typeof live === 'string' && live.length > 0) return live
+      }
+    } catch {
+      // Optional service: fall back to header.cwd
     }
   }
-
-  if ('file_path' in exec.arguments && typeof exec.arguments.file_path === 'string') {
-    const p = exec.arguments.file_path.trim()
-    return p.length > 0 ? p : undefined
-  }
-
-  return undefined
+  const headerCwd = session?.header?.cwd
+  return typeof headerCwd === 'string' && headerCwd.length > 0 ? headerCwd : undefined
 }
 
 /**
@@ -741,8 +793,10 @@ export function dropInstructionMessages(messages, baselineFiles = [], baselineLo
 const WORKSPACE_LINE_PREFIX = '\n\nYour working directory is '
 
 /** Append the workspace line, and the dispatcher block when the switch is on, to the persona section. */
-export function withWorkspaceLine(sections, agent, dispatcher = false) {
-  const cwd = agent?.session?.header?.cwd
+export function withWorkspaceLine(sections, agent, dispatcher = false, cwdOverride = undefined) {
+  const cwd = typeof cwdOverride === 'string' && cwdOverride.length > 0
+    ? cwdOverride
+    : agent?.session?.header?.cwd
   const line = (typeof cwd === 'string' && cwd.length > 0) ? `${WORKSPACE_LINE_PREFIX}${cwd}.` : ''
   if (line === '' && !dispatcher) return sections
   const persona = sections.find(section =>
@@ -759,7 +813,7 @@ export function withWorkspaceLine(sections, agent, dispatcher = false) {
 export function apply(ctx, config) {
   const keepPlanPolicy = optionalBoolean(config?.keepPlanPolicy, 'keepPlanPolicy', true)
   const keepSections = optionalKeepSections(config?.keepSections)
-  const dispatcher = optionalBoolean(config?.dispatcher, 'dispatcher', true)
+  const dispatcher = optionalBoolean(config?.dispatcher, 'dispatcher', false)
   const instructionSource = optionalSource(config?.instructionSource, 'instructionSource', 'host')
   const instructionMaxBytes = optionalByteSize(config?.instructionMaxBytes, 'instructionMaxBytes', DEFAULT_INSTRUCTION_MAX_BYTES)
 
@@ -784,8 +838,12 @@ export function apply(ctx, config) {
       if (instructionSource === 'system-prompt' && typeof session?.snapshotEvents === 'function') {
         try {
           const events = session.snapshotEvents()
-          const cwd = session.header?.cwd ?? process.cwd()
+          let cwd = session.header?.cwd ?? process.cwd()
           for (const ev of events) {
+            if (ev?.type === 'working-directory/change' && typeof ev.data?.cwd === 'string' && ev.data.cwd.length > 0) {
+              cwd = ev.data.cwd
+              continue
+            }
             // Both wire shapes count: a top-level call, and the program dispatch
             // a PTC session records for the same tool. A dispatch that reported
             // an error touched nothing.
@@ -795,8 +853,9 @@ export function apply(ctx, config) {
             if (typeof args === 'string') {
               try { args = JSON.parse(args) } catch {}
             }
-            const p = filePathFromExecution({ name: ev.data.name, arguments: args })
-            if (p) state.touchedDirs.add(dirname(resolve(cwd, p)))
+            for (const p of filePathsFromExecution({ name: ev.data.name, arguments: args })) {
+              state.touchedDirs.add(dirname(resolve(cwd, p)))
+            }
           }
         } catch {
           // Replay reconstruction fallback
@@ -835,6 +894,7 @@ export function apply(ctx, config) {
     const keep = new Set([
       ...PERSONA_SECTION_NAMES,
       ...(keepPlanPolicy ? [PLAN_POLICY_SECTION_NAME] : []),
+      TEAM_POLICY_SECTION_NAME,
       ...(wireHasRunCode ? PTC_SECTION_NAMES : []),
       ...keepSections,
     ])
@@ -854,7 +914,8 @@ export function apply(ctx, config) {
         + 'keeping the assembled prompt instead of sending an empty one')
       return assembled
     }
-    const narrowed = withWorkspaceLine(sections, context?.agent, dispatcher)
+    const liveCwd = resolveSessionCwd(context?.agent, ctx)
+    const narrowed = withWorkspaceLine(sections, context?.agent, dispatcher, liveCwd)
     // 'host' and 'hint' append no workspace-instructions section: the harness's
     // own agent-instructions row carries the content (or the hint replaces it).
     if (instructionSource !== 'system-prompt') return { ...assembled, sections: narrowed }
@@ -862,7 +923,7 @@ export function apply(ctx, config) {
     let text
     const session = context?.agent?.session
     const state = session ? getSessionState(session) : undefined
-    const cwd = session?.header?.cwd
+    const cwd = liveCwd
     try {
       if (cwd) {
         const files = await loadInstructionFiles(cwd)
@@ -896,15 +957,15 @@ export function apply(ctx, config) {
   ctx.on('tools/result', (exec, result) => {
     if (instructionSource !== 'system-prompt') return
     if (result?.isError || !exec?.agent || exec?.signal?.aborted) return
-    const path = filePathFromExecution(exec)
-    if (!path) return
+    const paths = filePathsFromExecution(exec)
+    if (paths.length === 0) return
 
     const session = exec.agent.session
     if (!session) return
 
-    const cwd = session.header?.cwd ?? process.cwd()
+    const cwd = resolveSessionCwd(exec.agent, ctx) ?? process.cwd()
     const state = getSessionState(session)
-    state.touchedDirs.add(dirname(resolve(cwd, path)))
+    for (const path of paths) state.touchedDirs.add(dirname(resolve(cwd, path)))
   })
 
   // 3. Agent pre-step message filter & dynamic discovery
@@ -930,7 +991,7 @@ export function apply(ctx, config) {
     }
 
     // System-prompt mode:
-    const cwd = session?.header?.cwd
+    const cwd = resolveSessionCwd(agent, ctx)
     const baselineLoaded = state?.baselineLoaded ?? false
     const baselineFiles = state?.baselineFiles ?? []
 

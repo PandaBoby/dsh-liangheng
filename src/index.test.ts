@@ -115,20 +115,17 @@ describe('resolveConfig', () => {
     })
   })
 
-  it('operator gets the dispatcher switch ON by default, as a volatile field', () => {
+  it('operator gets the dispatcher switch OFF by default, as a volatile field', () => {
     // Given the shipped schema, When the operator reads the effective settings,
-    // Then the dispatcher block is appended by default: a session that never
-    // touches the switch runs as a dispatcher, and switching it off is what
-    // returns the bare persona. The field is volatile like every other
-    // preset-shaping key, so the Host serves it as this entry's settings form
-    // and commits a write in place instead of remounting the row.
-    expect(DEFAULT_CONFIG.dispatcher).toBe(true)
-    expect(resolveConfig({}).dispatcher).toBe(true)
-    expect(resolveConfig(Config({})).dispatcher).toBe(true)
-    let committed = false
-    expect(resolveConfig({ dispatcher: { get: () => committed } }).dispatcher).toBe(false)
-    committed = true
+    // Then the dispatcher block is off by default for lean solo-first coding,
+    // and switching it on appends the coordinator rules.
+    expect(DEFAULT_CONFIG.dispatcher).toBe(false)
+    expect(resolveConfig({}).dispatcher).toBe(false)
+    expect(resolveConfig(Config({})).dispatcher).toBe(false)
+    let committed = true
     expect(resolveConfig({ dispatcher: { get: () => committed } }).dispatcher).toBe(true)
+    committed = false
+    expect(resolveConfig({ dispatcher: { get: () => committed } }).dispatcher).toBe(false)
   })
 
   it('operator sees dispatcher and presentation as independent settings', () => {

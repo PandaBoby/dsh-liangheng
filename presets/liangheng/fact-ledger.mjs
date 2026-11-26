@@ -39,8 +39,10 @@
  * exactly the guessing this preset exists to avoid.
  */
 
+import { erroredCallId } from './paging.mjs'
+
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-fact-ledger'
+export const name = 'liangheng-fact-ledger'
 
 /** The tools registry must exist before the ledger tool can register. */
 export const inject = ['tools']
@@ -77,13 +79,16 @@ export const MAX_FACTS = 12
  * `native` half keeps its existing semantics untouched: a `tool/call` is read
  * whatever its `tool/result` later reported, exactly as before this change.
  */
-function factRegisterCall(event) {
+function factRegisterCall(event, failedCallIds) {
   if (event?.type === 'tool/ptc-dispatch') {
     const dispatch = event.data
     if (dispatch?.name !== FACT_LEDGER_TOOL || dispatch?.isError === true) return undefined
     return dispatch
   }
   if (event?.type !== 'tool/call' || event.data?.name !== FACT_LEDGER_TOOL) return undefined
+  if (event.data?.callId !== undefined && failedCallIds?.has(String(event.data.callId))) {
+    return undefined
+  }
   return event.data
 }
 
@@ -98,11 +103,12 @@ function factRegisterCall(event) {
  * the pin/revoke rule has to be applicable per event instead of per stream.
  * @param facts - the register to fold into; left untouched by an unrelated event.
  * @param event - one durable session event.
+ * @param failedCallIds - optional Set of failed native callIds to exclude.
  * @returns the same array, so a stream fold can thread it through the pass.
  */
-export function applyFactLedgerEvent(facts, event) {
+export function applyFactLedgerEvent(facts, event, failedCallIds) {
   const register = Array.isArray(facts) ? facts : []
-  const data = factRegisterCall(event)
+  const data = factRegisterCall(event, failedCallIds)
   if (data === undefined) return register
   let args = data.arguments
   if (typeof args === 'string') {
@@ -131,9 +137,18 @@ export function applyFactLedgerEvent(facts, event) {
  * shape recorded it. The per-event rule lives in {@link applyFactLedgerEvent} so
  * a single-pass projection folds the same register without a second walk.
  */
-export function foldFactLedger(events) {
+export function foldFactLedger(events, failedCallIds) {
+  const list = Array.isArray(events) ? events : []
+  let errored = failedCallIds
+  if (errored === undefined) {
+    errored = new Set()
+    for (const event of list) {
+      const id = erroredCallId(event)
+      if (id !== undefined) errored.add(id)
+    }
+  }
   const facts = []
-  for (const event of Array.isArray(events) ? events : []) applyFactLedgerEvent(facts, event)
+  for (const event of list) applyFactLedgerEvent(facts, event, errored)
   return facts
 }
 

@@ -47,10 +47,10 @@ import {
   validatePagedToolPatterns,
 } from './paging.mjs'
 
-import { applyFactLedgerEvent, renderLedgerField } from './fact-ledger.mjs'
+import { FACT_LEDGER_TOOL, foldFactLedger, renderLedgerField } from './fact-ledger.mjs'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-working-context'
+export const name = 'liangheng-working-context'
 
 /** Cap one rendered todo title so the line stays a single glance. */
 const MAX_TITLE_CHARS = 80
@@ -120,20 +120,22 @@ export function renderWorkingContext(events, options) {
   const idleReclaim = options?.idleReclaimSteps ?? DEFAULT_IDLE_RECLAIM_STEPS
   const list = Array.isArray(events) ? events : []
   const plan = { seen: false, active: false }
-  const facts = []
   const errored = new Set()
   let todos
   let sawActivation = false
+  let sawFactRegister = false
   for (const event of list) {
     foldPlanMode(plan, event)
     todos = foldTodos(todos, event)
-    applyFactLedgerEvent(facts, event)
     const failedCallId = erroredCallId(event)
     if (failedCallId !== undefined) errored.add(failedCallId)
-    if ((event?.type === 'tool/call' || event?.type === 'tool/ptc-dispatch') && event.data?.name === TOOL_ACTIVATE_NAME) {
-      sawActivation = true
+    if (event?.type === 'tool/call' || event?.type === 'tool/ptc-dispatch') {
+      if (event.data?.name === TOOL_ACTIVATE_NAME) sawActivation = true
+      else if (event.data?.name === FACT_LEDGER_TOOL) sawFactRegister = true
     }
   }
+
+  const facts = sawFactRegister ? foldFactLedger(list, errored) : []
 
   const fields = []
   if (plan.seen) fields.push(`plan mode: ${plan.active ? 'on' : 'off'}`)

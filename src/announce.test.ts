@@ -160,8 +160,8 @@ describe('dsh-liangshen announcement (issue #839)', () => {
     // it, Then one system-prompt section carries the guidance text.
     const { mod, host } = await mount({ announceToAgent: true })
     expect(host.sections.length).toBe(1)
-    expect(host.sections[0]?.name).toBe('plugin:dsh-liangshen')
-    expect(host.sections[0]?.text).toBe(mod.LIANGSHEN_GUIDANCE)
+    expect(host.sections[0]?.name).toBe('plugin:dsh-liangheng')
+    expect(host.sections[0]?.text).toBe(mod.LIANGHENG_GUIDANCE)
   })
 
   it('operator keeps every prompt clean under the default config', async () => {
@@ -179,11 +179,11 @@ describe('dsh-liangshen preset declaration', () => {
     const { host } = await mount(undefined)
     expect(host.declarations.length).toBe(1)
     const { definition } = host.declarations[0]!
-    expect(definition.id).toBe('liangshen')
+    expect(definition.id).toBe('liangheng')
     // Display text comes from the preset's own preset.yml, so the roster shows
     // the same name an installed copy would.
-    expect(definition.name).toBe('梁神模式')
-    expect(definition.order).toBe(4)
+    expect(definition.name).toBe('梁衡模式')
+    expect(definition.order).toBe(5)
     expect(definition.plugins.length).toBeGreaterThan(20)
     // Relative module names point inside the bundled preset directory: the
     // registry mounts the declaration under its own loader base.
@@ -351,7 +351,7 @@ describe('dsh-liangshen preset parse reuse', () => {
     // Given a running row whose presentation the Host commits into
     vi.resetModules()
     const mod = await import('../src/index.ts')
-    let presentation = 'ptc'
+    let presentation = 'native'
     const host = makeHost()
     mounted.push(host)
     mod.apply(host.ctx, { presentation: { get: () => presentation } as never })
@@ -359,7 +359,7 @@ describe('dsh-liangshen preset parse reuse', () => {
     expect(host.declarations.length).toBe(1)
 
     // When the operator commits a new presentation
-    presentation = 'native'
+    presentation = 'ptc'
     host.commit()
     await settle()
 
@@ -367,24 +367,24 @@ describe('dsh-liangshen preset parse reuse', () => {
     // not touch is the very object the first declaration was built from: the
     // activation parsed the preset once instead of reading the disk again
     const catalogOf = (index: number) => rowsOf(host, index).find(row => row.id === 'tool-catalog')?.config?.['presentation']
-    expect(catalogOf(1)).toBe('native')
+    expect(catalogOf(1)).toBe('ptc')
     expect(rowsOf(host, 1).find(row => row.id === 'persona')).toBe(rowsOf(host, 0).find(row => row.id === 'persona'))
 
     // And the declaration the write replaced still reports what it declared,
     // so the overlay derived a new row list instead of mutating the cached one
-    expect(catalogOf(0)).toBe('ptc')
-    expect(rowsOf(host, 0).find(row => row.id === 'tool-executor-ptc')?.disabled).toBe(false)
-    expect(rowsOf(host, 1).find(row => row.id === 'tool-executor-ptc')?.disabled).toBe(true)
+    expect(catalogOf(0)).toBe('native')
+    expect(rowsOf(host, 0).find(row => row.id === 'tool-executor-ptc')?.disabled).toBe(true)
+    expect(rowsOf(host, 1).find(row => row.id === 'tool-executor-ptc')?.disabled).toBe(false)
 
     // When the operator commits the shipped value back
-    presentation = 'ptc'
+    presentation = 'native'
     host.commit()
     await settle()
 
     // Then the third declaration is the first one again: a re-arm never
     // accumulates the previous write on the cached base
     expect(host.declarations.length).toBe(3)
-    expect(catalogOf(2)).toBe('ptc')
+    expect(catalogOf(2)).toBe('native')
     expect(host.declarations[2]?.definition).toEqual(host.declarations[0]?.definition)
     expect(host.declarations.filter(record => !record.released).length).toBe(1)
     // The definition handed to the registry is this declaration's own object

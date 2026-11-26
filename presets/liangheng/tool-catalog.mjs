@@ -101,6 +101,7 @@ import {
   partitionWireTools,
   reconcileStepMessage,
   replayActivations,
+  resultIsError,
   sessionEvents,
   summarizeInactive,
   validatePagedToolPatterns,
@@ -108,7 +109,7 @@ import {
 import { publishWirePresentation } from './wire-presentation.mjs'
 
 /** Cordis plugin name used by loader diagnostics. */
-export const name = 'liangshen-tool-catalog'
+export const name = 'liangheng-tool-catalog'
 
 /** Prompt assembly must exist before the wire catalog can be observed. */
 export const inject = ['systemPrompt']
@@ -183,7 +184,7 @@ export const PRESENTATION_MODES = ['native', 'ptc']
  * A deployment with no mounted code runtime degrades to the native surface with a
  * one-time warning rather than presenting a transport the request cannot carry.
  */
-export const DEFAULT_PRESENTATION = 'ptc'
+export const DEFAULT_PRESENTATION = 'native'
 
 /**
  * The default ceiling on the resident (always-on-wire) tool surface, in
@@ -393,7 +394,9 @@ export const CURATED_TOOL_SUMMARIES = new Map([
   ['read_image', 'Read a PNG/JPEG/WebP/GIF image file and return the image itself (`file_path`); large images are downscaled automatically.'],
   ['write', 'Create or fully replace one UTF-8 text file (`file_path`, `content`).'],
   ['edit', 'Replace literal text in one existing file (`file_path`, `old_string`, `new_string`, optional `replace_all`).'],
+  ['apply_patch', 'Apply a multi-file or multi-hunk patch atomically after preflight (`input` in Begin/End Patch format; supports Add, Update, Delete, Move to).'],
   ['str_replace_editor', 'View, create, and edit files through one command tool (`command`, `path`, plus `file_text`, `old_str` / `new_str`, `insert_line`, `view_range`).'],
+  ['working_directory', 'Read the session working directory (`{}`) or switch directory for subsequent operations (`cd`).'],
   ['glob', 'Find files whose paths match a glob pattern (`pattern`, optional `path`); up to 100 paths in modification-time order.'],
   ['grep', 'Search file contents with a ripgrep expression (`pattern`, optional `path`, optional `include`); matching lines with line numbers.'],
   ['job_output', 'Read a background job: output since the previous read, or the finished result (`job_id`, optional `wait`, `timeout_ms`).'],
@@ -404,7 +407,7 @@ export const CURATED_TOOL_SUMMARIES = new Map([
   ['get_goal', 'Read the current session goal, including the id and revision that update_goal requires.'],
   ['update_goal', 'Change one goal: edit, pause, resume, complete or blocked (`goal_id`, `revision`, `action`, plus `objective`, `max_goal_rounds`, `blocked_reason`).'],
   ['exit_plan_mode', 'Present the completed plan for user review (`plan`, markdown starting with a title); approval is the only way out of plan mode.'],
-  ['subagent', 'Delegate a self-contained task to a subagent that works in its own context and returns its result, not its steps (`description`, `prompt`, optional `provider` / `model` / `reasoning_effort`).'],
+  ['subagent', 'Delegate a self-contained task to a subagent in its own context (`description`, `prompt`, optional `name`, `cwd`, `provider` / `model` / `reasoning_effort`).'],
   ['subagent_fork', 'Delegate a task to a subagent seeded with this conversation (`description`, `prompt`); it inherits the parent route, so route fields are not accepted.'],
   ['list_subagent_models', 'Discover the subagent routes this session authorizes (`provider`, optional `model`); the returned ids feed the delegation tools.'],
   ['send_message', 'Send a message to an agent in the subagent tree (`agent`, `message`); a working agent receives it at its next step, an idle one starts a new turn.'],
@@ -412,7 +415,8 @@ export const CURATED_TOOL_SUMMARIES = new Map([
   ['wait_agent', 'Wait for input at the next step: agent messages, completion notifications and user steering (`timeout_ms`, 10000 to 3600000, default 30000).'],
   ['interrupt_agent', 'Ask a subagent to stop its current work (`agent`); the call returns without waiting for it to settle.'],
   ['ask_user_question', 'Ask the user a concise question and wait for the answer (`questions`: id, question, optional header, options, and custom input).'],
-  ['web_search', 'Search the web for current information (one to four `queries`); returns a merged summary and its source URLs.'],
+  ['web_search', 'Search the web for current information (up to ten `queries`); returns merged summaries and source URLs.'],
+  ['web_fetch', 'Fetch a public HTTP(S) URL and extract readable content (`url`, optional extraction parameters).'],
   ['skill', 'Load the full instructions of one session skill (`name`); call it before acting on a task that names or matches a skill.'],
   ['tool_activate', 'Load one paged tool namespace back onto the wire and into the generated SDK (`namespace`, exactly as the catalog names it).'],
   ['fact_register', 'Pin one key fact into the working context (`fact`, optional `tag`), or unpin with `revoke`; at most twelve short facts stay pinned.'],
@@ -964,11 +968,51 @@ export function apply(ctx, config) {
    * before the next prompt is assembled. Declared concurrency-safe so it never
    * serializes independent read-only calls.
    */
-  ctx.on('tools/post-execute', (exec, _result, next) => {
+  ctx.on('tools/post-execute', (exec, result, next) => {
     const agent = exec?.agent
-    if (mayMovePaging(agent, exec?.name)) syncBeforeAssembly(agent)
+    // A failed call never activates or refreshes recency. Crucially, under
+    // `native` presentation `tool/result` is not yet appended when
+    // `tools/post-execute` runs, while `tool/call` already is — skipping errored
+    // results here prevents a failed `tool_activate` from falsely activating!
+    if (result?.isError !== true && mayMovePaging(agent, exec?.name)) {
+      syncBeforeAssembly(agent)
+    }
     return next()
   }, { prepend: true })
+
+  // Also keep paging aligned on durable session events:
+  // - `compaction/end` when deferred idle reclaim (`idleReclaimSteps > 0`) expires
+  //   namespaces before the next step's `tools.resolve()`;
+  // - `tool/ptc-dispatch` (in PTC mode `tool/ptc-dispatch` is appended asynchronously
+  //   after the sub-call settles, potentially after `tools/post-execute` ran);
+  // - `tool/result` (when `tool/call` + `tool/result` settle cleanly).
+  ctx.on('session/event', (session, event) => {
+    const agent = agentBySession.get(session)
+    if (agent === undefined) return
+    if (event?.type === 'compaction/end' && idleReclaimSteps > 0) {
+      syncBeforeAssembly(agent)
+      return
+    }
+    if (event?.type === 'tool/ptc-dispatch') {
+      if (event.data?.isError !== true && mayMovePaging(agent, event.data?.name)) {
+        syncBeforeAssembly(agent)
+      }
+      return
+    }
+    if (event?.type === 'tool/result' && !resultIsError(event.data)) {
+      const callId = event.data?.message?.source?.callId ?? event.data?.callId
+      if (callId === undefined) return
+      const events = sessionEvents(session)
+      const floor = Math.max(0, events.length - 32)
+      for (let index = events.length - 1; index >= floor; index -= 1) {
+        const ev = events[index]
+        if (ev?.type === 'tool/call' && String(ev.data?.callId) === String(callId)) {
+          if (mayMovePaging(agent, ev.data?.name)) syncBeforeAssembly(agent)
+          break
+        }
+      }
+    }
+  })
 
   ctx.on('system-prompt/assemble', async (assembly, context, next) => {
     const agent = context?.agent

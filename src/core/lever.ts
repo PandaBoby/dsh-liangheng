@@ -14,7 +14,10 @@
  */
 
 /** The preset id this lever turns on; also the preset directory name. */
-export const LIANGSHEN_PRESET_ID = 'liangshen'
+export const LIANGHENG_PRESET_ID = 'liangheng'
+
+/** Backward-compatible alias for the preset id. */
+export const LIANGSHEN_PRESET_ID = LIANGHENG_PRESET_ID
 
 /** What the lever currently reports. */
 export type LeverState =
@@ -43,26 +46,26 @@ export interface LeverFacts {
 
 /** Resolve what the lever shows for one set of facts. */
 export function leverState(facts: LeverFacts): LeverState {
-  if (!facts.available.includes(LIANGSHEN_PRESET_ID)) return 'missing'
+  if (!facts.available.includes(LIANGHENG_PRESET_ID)) return 'missing'
   if (!facts.blank) return 'locked'
-  return facts.agentPreset === LIANGSHEN_PRESET_ID ? 'on' : 'off'
+  return facts.agentPreset === LIANGHENG_PRESET_ID ? 'on' : 'off'
 }
 
 /**
  * The preset a push-up restores: the preset the user was on before pulling the
  * lever, else the deployment default, else the first usable roster row that is
- * not the LiangShen preset. A candidate is skipped when it is the LiangShen
+ * not the LiangHeng preset. A candidate is skipped when it is the LiangHeng
  * preset itself (restoring it would be a no-op) or when the roster no longer
  * supplies it. That last resort is what keeps the push direction alive when the
- * deployment default IS LiangShen mode: `fallback` is skipped then, and after a
+ * deployment default IS LiangHeng mode: `fallback` is skipped then, and after a
  * reload `previous` is gone, so without it the gesture would have no target.
  */
 export function restoreTarget(facts: LeverFacts): string | undefined {
   for (const candidate of [facts.previous, facts.fallback]) {
-    if (candidate === undefined || candidate === LIANGSHEN_PRESET_ID) continue
+    if (candidate === undefined || candidate === LIANGHENG_PRESET_ID) continue
     if (facts.available.includes(candidate)) return candidate
   }
-  return facts.available.find(candidate => candidate !== LIANGSHEN_PRESET_ID)
+  return facts.available.find(candidate => candidate !== LIANGHENG_PRESET_ID)
 }
 
 /** Whether the lever can act at all in its current state. */

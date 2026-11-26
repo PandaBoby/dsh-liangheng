@@ -12,7 +12,7 @@ import {
   withheldToolNames,
 } from './paging.mjs'
 
-const PLUGIN = 'liangshen'
+const PLUGIN = 'liangheng'
 
 describe('page families', () => {
   it('ships the seven families the preset documents', () => {
