@@ -11,7 +11,12 @@ const shared = {
   dts: false,
   clean: false,
   sourcemap: true,
-  css: { inject: true },
+  // The default scope name is `[hash]_[local]`, and lightningcss derives that
+  // hash from the file path too — so the same source produced different class
+  // names per checkout and `lib/client.js` could never be reproducible. Keying
+  // it on content alone makes the build portable, which is what lets CI check
+  // the committed output.
+  css: { inject: true, modules: { generateScopedName: '[content-hash]_[local]' } },
   deps: { neverBundle: [/^@deepseek-ai\//, /^node:/, 'react', 'react-dom', 'react/jsx-runtime'] },
 }
 
