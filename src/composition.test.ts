@@ -344,6 +344,21 @@ describe('applyPresetOverrides', () => {
   })
 })
 
+describe('shipped paging configuration', () => {
+  it('operator declares the same families and threshold on every row that reads them', () => {
+    // Given the shipped composition
+    // When each paging row's own declaration is read
+    // Then the three lists and both step thresholds agree, so a session with no
+    // settings write cannot page from two different pattern sets — the row the
+    // settings overlay does not reach is the one that would drift.
+    const catalog = configOf(rowOf(rows(), 'tool-catalog'))
+    for (const id of PAGING_ROWS) {
+      expect(configOf(rowOf(rows(), id))['pagedToolPatterns'], id).toEqual(catalog['pagedToolPatterns'])
+      expect(configOf(rowOf(rows(), id))['idleReclaimSteps'], id).toEqual(catalog['idleReclaimSteps'])
+    }
+  })
+})
+
 describe('pagedToolPatterns override', () => {
   it('operator writes the parsed family text as an array into every row that pages from it', () => {
     // Given the shipped composition and a settings text naming two families
