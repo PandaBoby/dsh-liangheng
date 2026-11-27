@@ -8,7 +8,7 @@
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License" /></a>
-  <a href="https://www.npmjs.com/package/dsh-liangheng"><img src="https://img.shields.io/npm/v/dsh-liangheng?style=flat-square&amp;logo=npm&amp;color=cb3837" alt="npm" /></a>
+  <a href="https://www.npmjs.com/package/dsh-liangheng"><img src="https://img.shields.io/npm/v/dsh-liangheng.svg?style=flat-square&amp;logo=npm&amp;color=cb3837" alt="npm" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D24.9.0-339933?style=flat-square&amp;logo=node.js&amp;logoColor=white" alt="Node" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.3-4c6ef5?style=flat-square" alt="DSH" /></a>
   <img src="https://img.shields.io/badge/preset-liangheng-2b8a3e?style=flat-square" alt="Preset" />
@@ -29,6 +29,10 @@
 <p><code>dsh plugin --profile web add dsh-liangheng</code></p>
 
 </div>
+
+<p align="center">
+  <img src="docs/assets/hero.png" alt="dsh-liangheng: the tool surface collapses into run_code, with seven high-fan-out families paged in on demand" width="100%" />
+</p>
 
 ---
 
