@@ -229,6 +229,9 @@ node tools/check-dispatcher-rules.mjs  # 校验调度器规则片段完整性
 - **DeepSeek Harness 内置预设**——Adapted from built-in `minimal`, `standard`, and `ptc` presets (MIT).
 - **dsh-anchored-standard**——<https://github.com/xiaobright/dsh-anchored-standard> (MIT).
 
+特别感谢 [**稳明光语纪**](https://wenming7.cn/) 为本项目的 agent 开发工作提供**不限量 token** 支持——
+基准测试与长会话验证得以持续跑下去，靠的就是这份算力。
+
 ## 许可证
 
 [Apache-2.0](LICENSE)。

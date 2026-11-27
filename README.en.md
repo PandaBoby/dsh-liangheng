@@ -189,3 +189,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CHANGELOG.md](CHANGELOG.md).
 - **LiangShen (`@linxin666/dsh-liangshen` v0.4.21)** — Apache-2.0, © zhu1090093659. See [LICENSE](LICENSE) and [presets/liangheng/NOTICE](presets/liangheng/NOTICE).
 - **DeepSeek Harness built-in presets** — Adapted from `minimal`, `standard`, and `ptc` (MIT).
 - **dsh-anchored-standard** — <https://github.com/xiaobright/dsh-anchored-standard> (MIT).
+
+Special thanks to [**稳明光语纪**](https://wenming7.cn/) for providing **unmetered token capacity**
+for this project's agent development work — the benchmarks and long-session verification run on it.
