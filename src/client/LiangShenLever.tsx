@@ -137,6 +137,10 @@ export function LiangShenLever(face: LeverFace): ReactElement | null {
             <circle className={css.knob} cx="8" cy="4" r="3.4" />
           </svg>
         </span>
+        {/* State, not the mode's name: the preset picker above the composer
+            already spells "LiangHeng mode", and repeating it here reads as a
+            second selector instead of as the state of this switch. */}
+        <span className={css.readout}>{on ? face.t('lever.readout.on') : face.t('lever.readout.off')}</span>
       </button>
       {errorText !== undefined && (
         <span className={css.error} role="status" title={errorText}>{errorText}</span>

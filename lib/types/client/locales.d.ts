@@ -12,6 +12,8 @@ export declare const zh: {
     'lever.hint.locked': string;
     'lever.hint.missing': string;
     'lever.state.off': string;
+    'lever.readout.on': string;
+    'lever.readout.off': string;
     'lever.failed.locked': string;
     'lever.failed.missing': string;
     'lever.failed.timeout': string;
