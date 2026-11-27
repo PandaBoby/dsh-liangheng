@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-27
+
+### Added
+
+- **模式标识接管三处宿主图标位**：宿主把「Agent 预设」的图标写死成通用的
+  `IconAgentPresetOutlineRegular`（roster 协议里根本没有 icon 字段），「深度求索中，用时 …」
+  那一行也自带一套鲸鱼尾巴遮罩动画（APNG + `currentColor`）。三处现在都由
+  [ChatPolish.css](src/client/ChatPolish.css) 从外面接管：新会话的预设选择器
+  （`conversation.hero.agentPreset`）与会话头徽标（`conversation.session.header.actions`）
+  换成模式自带的鲸鱼，运行状态行整只换成同一只鲸鱼的 15 帧动画。锚点只用
+  `data-slot` / `data-chat-running` 这类公开契约，不碰 CSS-module 哈希；暗色主题下各自
+  提亮。动画与静帧以 data URI 内嵌，不新增文件、不依赖打包器解析资源路径。
+
 ### Changed
 
 - **交互式命令自驱（Persona 第 3 节）**：登录、2FA、浏览器授权这类步骤不再让用户把一次性验证码
