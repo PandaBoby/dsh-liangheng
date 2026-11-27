@@ -45,7 +45,7 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(ul, ol) {
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] li:not(:first-child) {
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* The host gaps a list item's first paragraph at 8px; inside a list the item
@@ -90,6 +90,9 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block 
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
   tab-size: 2;
+  /* The host sets this from its content-font token (13/32), which reads as
+     double-spaced once a block runs past a few lines. */
+  line-height: 1.7;
 }
 
 /* Ligatures are wrong in code: `->` and `!=` must not collapse into glyphs. */
@@ -99,15 +102,18 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block 
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] {
   border-bottom: 0.5px solid var(--dsw-alias-border-l1);
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
 }
 
 /* The host renders inline code as an inline-flex pill, which drops the space
-   around it and breaks mid-word on wrap. Inline keeps both. */
+   around it and breaks mid-word on wrap. Inline keeps both. The border is
+   dropped as well: a bordered pill on every token turns a paragraph of prose
+   into a row of buttons, and the host's own compact mode has no border either. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] :not(pre) > code {
   display: inline;
+  border: 0;
   border-radius: var(--dsw-radius-xs, 4px);
-  padding: 0 5px;
+  padding: 0 4px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -173,7 +179,7 @@ html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="r
 }
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] [data-code-block-banner] {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 7%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent);
 }
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] img {
