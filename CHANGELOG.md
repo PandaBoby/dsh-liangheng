@@ -5,6 +5,8 @@
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-11-27
+
 ### Fixed
 
 - **验证账本的长键不再被省略号吃掉**：[CheckListFence.module.css](src/client/CheckListFence.module.css)
