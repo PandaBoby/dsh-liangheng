@@ -126,6 +126,27 @@ describe('readCompositionRows', () => {
     expect(prefix).toContain('「图片无法预览」')
   })
 
+  it('operator reads the check-fence ledger rule beside the verification footer', () => {
+    // Given the persona row shipped with this preset, When a session reports
+    // finished checks, Then it writes one ```check ledger instead of raw CLI
+    // output — the same text that a client without the plugin renders as code.
+    const prefix = configOf(rowOf(rows(), 'persona'))['prefix'] as string
+    expect(prefix).toContain('```check fence')
+    expect(prefix).toContain('✓ tests: 142 passed')
+    expect(prefix).toContain('plain code block on clients without this plugin')
+  })
+
+  it('operator reads one 结论 callout per reply beside the 分析 of a trace note', () => {
+    // Given the persona row shipped with this preset, When a session writes a
+    // note between tool calls, Then that note opens with 「分析」 and the single
+    // 「结论」 stays on the final answer: two 结论 blocks rendered in one reply
+    // read as rival headlines.
+    const prefix = configOf(rowOf(rows(), 'persona'))['prefix'] as string
+    expect(prefix).toContain('exactly one `> **结论**：...`')
+    expect(prefix).toContain('between tool calls opens with `> **分析**：...`')
+    expect(prefix).not.toContain('Lead with a conclusion callout')
+  })
+
   it('operator keeps a loader expression as data instead of executing it', () => {
     // Given the platform-conditional shell rows, When the operator reads them,
     // Then each `!!js` expression arrives as data for the Loader to evaluate.

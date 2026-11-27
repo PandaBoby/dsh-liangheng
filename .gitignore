@@ -4,3 +4,6 @@ lib/types/.tsbuildinfo
 .DS_Store
 coverage/
 *.tgz
+
+# 本地预览/探针产物（不进仓库）
+.probe/

@@ -4,69 +4,526 @@
  *
  * A plain stylesheet, not a CSS module: every rule here is global by design and
  * names no class of its own, and the bundler drops a module whose class map is
- * never read — which is why an earlier `.module.css` version of this file
- * silently contributed nothing to the bundle.
+ * never read.
  *
- * The anchor is the transcript's own attribute, not a private class: the Chat
- * seat marks every node wrapper with `data-chat-group-part`, and an assistant
- * reply step is the only node that carries `response` (reasoning rows carry
- * `reasoning`, user and tool nodes carry nothing). Global class hooks are only
- * the ones the host itself uses as globals — `.md-code-block`,
- * `.md-table-wide` and `[data-code-block-banner]` — because every other class
- * in the transcript is a CSS-module hash that moves between releases.
+ * Design language (inspired by Claude Code Desktop, Codex Desktop & editorial
+ * Markdown CSS):
+ * - Quiet authority & single-layer chrome: hierarchy comes from proportion,
+ *   rhythm, typographic contrast, subtle tonal surfaces, and crisp hairlines —
+ *   never stacked borders + shadows + heavy fills doing one job.
+ * - 100% stable DOM hooks only: semantic `data-*` attributes emitted by DSH
+ *   (`data-chat-group-part`, `data-chat-flow-kind`, `data-variant="think"`,
+ *   `data-step-process`, `data-turn-process`, `data-message-bubble`,
+ *   `data-composer-card`, `data-input-scroll`, `data-composer-dock`,
+ *   `data-code-block-banner`) plus host global classes (`.md-code-block`,
+ *   `.md-table-wide`, `.katex-display`). Zero CSS-module hashes.
+ * - Full respect for DSH Settings font-size tokens (`--dsh-content-font-*`,
+ *   `--dsh-code-font-*`), width drag axis (`--dsh-chat-content-width`),
+ *   Light/Dark themes (`body[data-ds-dark-theme]`), and reduced motion.
  */
 
-/* ── Headings and vertical rhythm ─────────────────────────────────────────
-   The host spends 32px above every heading, which is right for a document and
-   too airy for a reply read top to bottom. */
+/* ═══════════════════════════════════════════════════════════════════════════
+   1. TRANSCRIPT CADENCE & EDITORIAL LEGIBILITY
+   Generous turn separation and clean transition from execution trace to reply.
+   Rides DSH's own `--dsh-chat-flow-gap` axis so folding animations and empty
+   seat collapsing stay intact.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h1, h2, h3) {
-  margin: 28px 0 14px;
-  letter-spacing: -0.01em;
+html[data-liangheng-chat="on"] [data-slot="conversation.chat.flow"] {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
 }
 
-/* An h2 opens a section; the hairline makes that split visible without a box. */
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] h2 {
-  padding-bottom: 6px;
-  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+/* Give each new user turn clear chapter-like breathing room. */
+html[data-liangheng-chat="on"] [data-chat-flow-kind="user"] {
+  --dsh-chat-flow-gap: 28px;
 }
 
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h4, h5, h6) {
-  margin: 20px 0 10px;
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] + [data-chat-flow-kind="user"],
+html[data-liangheng-chat="on"] [data-chat-flow-kind="turn-tail"] + [data-chat-flow-kind="user"] {
+  --dsh-chat-flow-gap: 28px;
+}
+
+/* Deliberate pause between process rows (thinking/tools) and the answer. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] {
+  --dsh-chat-flow-gap: 16px;
+}
+
+html[data-liangheng-chat="on"] [data-step-process] {
+  --dsh-chat-flow-gap: 8px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-flow-kind="turn-tail"] {
+  --dsh-chat-flow-gap: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   2. THINKING & PROCESS FLOW (思考与过程流)
+   Codex / Claude Code Desktop-style collapsible reasoning & trace hierarchy:
+   quiet interactive disclosure rows, vertical timeline guide rail on expanded
+   thought, breathable CJK micro-typography, and subtle active-streaming accent.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Reasoning disclosure row & sticky header ────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-variant="think"] [data-disclosure-row] {
+  border-radius: 7px;
+  padding-inline: 6px;
+  margin-inline: -6px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-variant="think"] [data-disclosure-row][data-expandable]:hover {
+    background: var(--dsw-alias-interactive-bg-hover);
+    color: var(--dsw-alias-label-secondary);
+  }
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > [data-disclosure-header] {
+  padding-block: 3px;
+  border-bottom: 0.5px solid color-mix(in srgb, var(--dsw-alias-border-l2) 70%, transparent);
+}
+
+/* ── Expanded thinking body: signature left guide rail + editorial rhythm ── */
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) {
+  position: relative;
+  margin: 4px 0 6px 7px;
+  padding: 6px 2px 8px 16px;
+  border-left: 1.5px solid var(--dsw-alias-border-l2);
+  color: color-mix(in srgb, var(--dsw-alias-label-secondary) 86%, var(--dsw-alias-label-tertiary));
+  line-height: 1.72;
+  transition: border-color 220ms ease;
+}
+
+/* Subtle accent rail while live reasoning is streaming, settling when done. */
+html[data-liangheng-chat="on"] [data-variant="think"][data-state="running"][data-expanded] [data-open] > :not([data-disclosure-header]) {
+  border-left-color: color-mix(in srgb, var(--dsw-alias-state-business-primary) 48%, var(--dsw-alias-border-l2));
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) p {
+  margin: 7px 0;
+  line-height: 1.72;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) :is(h1, h2, h3, h4, h5, h6) {
+  margin: 12px 0 4px;
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
+  letter-spacing: -0.005em;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) :is(ul, ol) {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) li:not(:first-child) {
+  margin-top: 4px;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) li > p {
+  margin: 3px 0;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) strong {
+  font-weight: 600;
+  color: var(--dsw-alias-label-secondary);
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) blockquote {
+  margin: 8px 0;
+  padding: 2px 0 2px 12px;
+  border-left: 1.5px solid var(--dsw-alias-border-l3);
+  color: var(--dsw-alias-label-tertiary);
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) :not(pre) > code {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 5.5%, transparent);
+  border: 0;
+  border-radius: 4px;
+  padding: 0.08em 0.35em;
+  font-variant-ligatures: none;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) .md-code-block {
+  margin: 8px 0;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 0.5px var(--dsw-alias-border-l1);
+  overflow: clip;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) hr {
+  margin: 10px 0;
+  background: var(--dsw-alias-border-l1);
+}
+
+/* ── Step process groups, tool rows & settled turn duration bar ──────────── */
+
+html[data-liangheng-chat="on"] [data-step-process] button[data-process-activity] {
+  border-radius: 7px;
+  padding: 1px 8px;
+  margin-inline: -8px;
+  font-size: var(--dsh-content-font-size-secondary, 13px);
+  font-weight: 500;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+/* A settled process group is a status line, not the opening of a paragraph. It
+   reads one tier stronger than the host's tertiary grey, its glyph carries the
+   "done" accent, and the body below is fenced by a hairline so the first thing
+   inside can never be read as the title's subtitle. */
+html[data-liangheng-chat="on"] [data-step-process]:not([data-group-expanded-mode]) button[data-process-activity] {
+  color: var(--dsw-alias-label-secondary);
+}
+
+html[data-liangheng-chat="on"] [data-step-process]:not([data-group-expanded-mode]) button[data-process-activity] [data-step-process-icon] {
+  color: var(--dsw-alias-state-done-primary, var(--dsw-alias-state-business-primary));
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-step-process] button[data-process-activity]:hover {
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
+}
+
+/* Unified execution-trace rail when a collapsed process group is opened. */
+html[data-liangheng-chat="on"] [data-step-process]:not([data-group-expanded-mode]) [data-step-process-body]:not([hidden]) {
+  border-top: 0.5px solid var(--dsw-alias-border-l1);
+  margin-top: 6px;
+  margin-left: 7px;
+  padding-top: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--dsw-alias-border-l2);
+}
+
+/* ── Process scrollport: one axis, never two ───────────────────────────────
+   A collapsed process group is capped at `min(400px, 50vh)` and scrolls with
+   `overflow-y: auto` alone — which the spec resolves to `overflow-x: auto` as
+   well, so a single unbreakable run (a long path, a wide identifier) paints a
+   horizontal bar underneath the whole trace. `clip` pins the cross axis
+   without creating a scroll container, leaving the host's vertical scroll, its
+   `data-scroll-*` fade hints and scroll wiring exactly as shipped. */
+html[data-liangheng-chat="on"] [data-step-process-body] {
+  overflow-x: clip;
+}
+
+/* Long unbreakable runs wrap instead of pushing the scrollport sideways. */
+html[data-liangheng-chat="on"] [data-variant="think"] :where(p, li, blockquote, td, th) {
+  overflow-wrap: anywhere;
+}
+
+html[data-liangheng-chat="on"] [data-variant="think"] :not(pre) > code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Tool rows share the same crisp, low-weight hover affordance as think rows. */
+html[data-liangheng-chat="on"] [data-chat-flow-kind="tool-call"] [data-disclosure-row] {
+  border-radius: 7px;
+  padding-inline: 6px;
+  margin-inline: -6px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-chat-flow-kind="tool-call"] [data-disclosure-row][data-expandable]:hover {
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
+}
+
+/* Settled turn header ("Worked for Xs"): quiet hairline & tabular numerals. */
+html[data-liangheng-chat="on"] button[data-turn-process] {
+  border-bottom-color: var(--dsw-alias-border-l1);
+  font-size: var(--dsh-content-font-size-secondary, 13px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.005em;
+}
+
+html[data-liangheng-chat="on"] [data-chat-running] {
+  letter-spacing: 0.01em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   3. COMPOSER INPUT & USER MESSAGES (输入区与用户消息)
+   Claude Code / Codex Desktop-inspired composer craft: sculpted elevation,
+   tactile focus contour, spacious draft leading, and calm architectural user
+   message cards instead of bright chat bubbles.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Composer card (live sessions & hero, excluding inert workspace trigger) ─ */
+
+html[data-liangheng-chat="on"] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])) {
+  border-radius: 20px;
+  padding: 10px 4px 4px;
+  gap: 10px;
+  --dsw-elevation-stroke-color: var(--dsw-alias-border-l2);
+  box-shadow:
+    inset 0 0 0 1px var(--dsw-alias-border-l2),
+    0 2px 10px rgb(15 23 42 / 4%),
+    0 1px 2px rgb(15 23 42 / 3%);
+  transition:
+    box-shadow 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 180ms ease;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])):hover {
+    box-shadow:
+      inset 0 0 0 1px var(--dsw-alias-border-l3),
+      0 4px 16px rgb(15 23 42 / 5.5%),
+      0 1px 3px rgb(15 23 42 / 3.5%);
+  }
+}
+
+html[data-liangheng-chat="on"] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])):focus-within {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 52%, var(--dsw-alias-border-l3)),
+    0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent),
+    0 6px 24px rgb(15 23 42 / 6%);
+}
+
+/* Hero phase: flagship workbench presence for new-session composer. */
+html[data-liangheng-chat="on"] [data-phase="hero"] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])) {
+  border-radius: 22px;
+  padding: 12px 6px 6px;
+  box-shadow:
+    inset 0 0 0 1px var(--dsw-alias-border-l2),
+    0 8px 28px rgb(15 23 42 / 5%),
+    0 2px 6px rgb(15 23 42 / 3%);
+}
+
+html[data-liangheng-chat="on"] [data-phase="hero"] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])):focus-within {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 52%, var(--dsw-alias-border-l3)),
+    0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent),
+    0 12px 34px rgb(15 23 42 / 7%);
+}
+
+/* Draft surface: breathable multi-line CJK/Latin editing rhythm. */
+html[data-liangheng-chat="on"] [data-composer-card] [data-input-scroll] [contenteditable],
+html[data-liangheng-chat="on"] [data-composer-card] [data-composer-placeholder] {
+  line-height: calc(25px + var(--dsh-content-font-delta, 0px));
+  letter-spacing: 0.005em;
+}
+
+html[data-liangheng-chat="on"] [data-composer-card] [data-composer-placeholder] {
+  opacity: 0.85;
+}
+
+/* Docked status / context meter below the composer: quiet until hovered. */
+html[data-liangheng-chat="on"] [data-composer-dock] {
+  padding-top: 6px;
+  opacity: 0.82;
+  transition: opacity 150ms ease;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-composer-dock]:hover {
+    opacity: 1;
+  }
+}
+
+/* ── User & steering message bubbles in the transcript ───────────────────── */
+
+html[data-liangheng-chat="on"] [data-message-bubble] {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4.5%, var(--dsw-alias-bg-base));
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  padding: 11px 16px;
+  line-height: calc(24px + var(--dsh-content-font-delta, 0px));
+  letter-spacing: 0.004em;
+  color: var(--dsw-alias-label-primary);
+}
+
+/* Pending steering input: subtle dashed contour distinguishes queued steers. */
+html[data-liangheng-chat="on"] [data-pending-steering] [data-message-bubble] {
+  border-style: dashed;
+  border-color: var(--dsw-alias-border-l3);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 3%, var(--dsw-alias-bg-base));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   4. ASSISTANT OUTPUT TYPOGRAPHY (输出排版 & Editorial Markdown CSS)
+   Balanced CJK + Latin prose, clear typographic heading ladder, leading
+   conclusion callout, crisp code blocks with working sticky headers, and
+   properly padded editorial tables.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Prose & inline semantics ────────────────────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] {
+  line-height: calc(25px + var(--dsh-content-font-delta, 0px));
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] p {
-  margin: 12px 0;
+  margin: 13px 0;
+  line-height: calc(25px + var(--dsh-content-font-delta, 0px));
 }
 
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] strong {
+  font-weight: 600;
+  color: var(--dsw-alias-label-primary);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(del, s) {
+  color: var(--dsw-alias-label-tertiary);
+  text-decoration-thickness: 1px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] mark {
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 18%, transparent);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0.05em 0.28em;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] kbd {
+  display: inline-block;
+  font-family: var(--ds-font-family-code);
+  font-size: 0.82em;
+  line-height: 1.35;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, var(--dsw-alias-bg-base));
+  box-shadow: inset 0 -1px 0 var(--dsw-alias-border-l2);
+  color: var(--dsw-alias-label-primary);
+  vertical-align: 0.05em;
+}
+
+/* ── Heading hierarchy (clear visual steps, unlike host's 19px vs 18px) ─── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] h1 {
+  font-size: calc(22px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.36;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 28px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--dsw-alias-border-l2);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] h2 {
+  font-size: calc(18px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.4;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  margin: 26px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] h3 {
+  font-size: calc(15.5px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.45;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 20px 0 8px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] h4 {
+  font-size: calc(14px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.5;
+  font-weight: 600;
+  margin: 16px 0 6px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h5, h6) {
+  font-size: calc(13px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.5;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--dsw-alias-label-secondary);
+  margin: 14px 0 6px;
+}
+
+/* Compress stacked adjacent headings so two headings never leave a double gap. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h1 + h2, h2 + h3, h3 + h4) {
+  margin-top: 10px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h1, h2, h3, h4, h5, h6) :not(pre) > code {
+  font-weight: 550;
+  padding: 0.06em 0.34em;
+}
+
+/* ── Lists & task lists ──────────────────────────────────────────────────── */
+
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(ul, ol) {
-  margin: 12px 0;
-  padding-left: 20px;
+  margin: 10px 0;
+  padding-left: 22px;
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] li:not(:first-child) {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
-/* The host gaps a list item's first paragraph at 8px; inside a list the item
-   already carries that gap, so the paragraph must not add its own. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li > :is(ul, ol) {
+  margin: 5px 0 2px;
+}
+
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] li > p {
   margin: 4px 0;
 }
 
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] li::marker {
-  color: var(--dsw-alias-label-tertiary);
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li > p:first-child {
+  margin-top: 0;
 }
 
-/* ── Blockquotes ────────────────────────────────────────────────────────────
-   One rule and a quieter voice, no wash and no rounding: a tinted card behind
-   quoted text competes with the code blocks and tables around it. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li > p:last-child {
+  margin-bottom: 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li::marker {
+  color: var(--dsw-alias-label-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] input[type="checkbox"] {
+  accent-color: var(--dsw-alias-state-business-primary);
+  vertical-align: -0.1em;
+}
+
+/* ── Blockquotes & leading conclusion callout ──────────────────────────────
+   Body blockquotes keep one crisp left rule and quieter voice (zero extra
+   chrome). A leading blockquote (`> **结论**：...`) opens the reply as a
+   refined executive takeaway card with primary ink and soft accent wash. */
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote {
-  border-left: 2px solid var(--dsw-alias-border-l3);
+  border-left: 2.5px solid var(--dsw-alias-border-l3);
   color: var(--dsw-alias-label-secondary);
-  padding: 2px 0 2px 14px;
-  margin: 14px 0;
+  padding: 3px 0 3px 15px;
+  margin: 13px 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"]:not([data-turn-process-member]) :not(li):not(blockquote):not(td) > blockquote:first-child {
+  border-left: 2.5px solid var(--dsw-alias-state-business-primary);
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 5%, transparent);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 16px;
+  margin: 0 0 13px;
+  color: var(--dsw-alias-label-primary);
+}
+
+/* The takeaway card means "this reply opens with its conclusion" — one per
+   answer, blue. Inside the execution trace the same `> …` shape must read as a
+   step note instead, so it keeps a card body but drops to neutral ink: a trace
+   that emits two such blocks would otherwise show two competing headlines.
+   Both gates are needed. `data-turn-process-member` is the flow row's own mark
+   for "this node belongs to the process" — the only hook that separates a trace
+   row from the answer row, since every row carries `data-chat-group-part` and
+   starts with its own first block. The `:not()` gate above keeps the blue card
+   off those rows even if a wrapper hides the mark from this selector. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is([data-turn-process-member], [data-turn-process-inline], [data-step-process]) :not(li):not(blockquote):not(td) > blockquote:first-child {
+  border-left: 2.5px solid var(--dsw-alias-border-l3);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 3.5%, transparent);
+  border-radius: 0 8px 8px 0;
+  padding: 8px 14px;
+  margin: 0 0 13px;
+  color: var(--dsw-alias-label-secondary);
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote > :first-child {
@@ -77,23 +534,99 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote > :l
   margin-bottom: 0;
 }
 
-/* ── Code ──────────────────────────────────────────────────────────────── */
+/* ── Code blocks & inline code ─────────────────────────────────────────────
+   Card skeleton: a hairline card with a two-layer shadow, a quiet banner that
+   shares the card's own surface (its 5% hairline is the only separator), then a
+   barely-tinted code well. There is no brand rule on the top edge: a column of
+   five fences painted five accent stripes reads as decoration, not as code.
+   `overflow: clip` (NOT `hidden`) clips the rounded corners without breaking
+   the host's `position: sticky` code banner on tall blocks. */
 
-/* One hairline around the whole block instead of the host's borderless slab, so
-   the banner row and the code area share one rounded card. The border is gone:
-   the block already carries its own background token. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block {
-  border-radius: var(--dsl-code-block-border-radius, var(--dsw-radius-lg, 12px));
-  overflow: hidden;
+  --dsl-code-block-border-radius: 12px;
+  /* One vertical rhythm for every block in the reply: paragraphs, quotes,
+     tables and fences all keep the same 13px, so a stack of five different
+     block kinds stops looking like five unrelated spacings. */
+  margin: 13px 0;
+  border-radius: var(--dsl-code-block-border-radius);
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow:
+    0 0 0 1px var(--dsw-alias-border-l2),
+    0 1px 2px rgb(15 23 42 / 4%),
+    0 10px 24px -14px rgb(15 23 42 / 26%);
+  overflow: clip;
 }
 
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] {
+  background: var(--dsw-alias-bg-layer-1);
+  border-bottom: 1px solid color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+  padding: 7px 10px 7px 13px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* The banner label is a tracked small-cap line, not a filled capsule: a pill on
+   every fence made the header read as another control next to the copy button. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] > [data-text-interaction-exclude] {
+  font-family: var(--ds-font-family-code);
+  font-size: 9.5px;
+  font-weight: 650;
+  line-height: 1.6;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-secondary);
+  background: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] button {
+  color: var(--dsw-alias-label-secondary);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+  border-radius: 6px;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] button:hover {
+    color: var(--dsw-alias-label-primary);
+    background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
+  }
+}
+
+/* Cool-neon syntax palette. Shiki renders spans with `color: var(--shiki-token-*)`
+   through its css-variables theme, so overriding the variables here recolors the
+   code without touching a single host selector. Scoped to the reply well: tool
+   output and diffs keep the host palette. Menlo at 13.5/1.55 matches the tight
+   IDE feel the palette was picked for. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block pre {
+  --shiki-foreground: var(--dsw-alias-label-primary);
+  --shiki-token-comment: #7f8aa3;
+  --shiki-token-keyword: #c2255c;
+  --shiki-token-string: #0b7285;
+  --shiki-token-string-expression: #0b7285;
+  --shiki-token-constant: #1971c2;
+  --shiki-token-function: #7048e8;
+  --shiki-token-parameter: #e8590c;
+  --shiki-token-punctuation: #5c6472;
+  --shiki-token-link: #1f6feb;
+  font-family: Menlo, "SF Mono", ui-monospace, monospace;
+  font-size: max(13.5px, calc(var(--dsh-code-font-size, 11px) + 2.5px));
+  line-height: 1.55;
+  /* The host's pre keeps its own block margins; stacked on our padding they read
+     as a stray empty band above the first line of code. */
+  margin: 0;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 1.5%, var(--dsw-alias-bg-layer-1));
+  padding: 11px 14px 13px;
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
   tab-size: 2;
-  /* The host sets this from its content-font token (13/32), which reads as
-     double-spaced once a block runs past a few lines. */
-  line-height: 1.7;
+}
+
+/* Comments should read as margin notes, not as code. Shiki writes the token
+   variable into the span's inline style, which is the only stable hook it
+   offers — no CSS-module hash, no extra element. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block [style*="shiki-token-comment"] {
+  font-style: italic;
 }
 
 /* Ligatures are wrong in code: `->` and `!=` must not collapse into glyphs. */
@@ -101,89 +634,271 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block 
   font-variant-ligatures: none;
 }
 
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
-}
-
-/* The host renders inline code as an inline-flex pill, which drops the space
-   around it and breaks mid-word on wrap. Inline keeps both. The border is
-   dropped as well: a bordered pill on every token turns a paragraph of prose
-   into a row of buttons, and the host's own compact mode has no border either. */
+/* Natural inline code: flows cleanly across CJK wraps without button borders. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] :not(pre) > code {
   display: inline;
   border: 0;
-  border-radius: var(--dsw-radius-xs, 4px);
-  padding: 0 4px;
+  border-radius: 5px;
+  /* One step quieter: a paragraph that reads like `a` `b` `c` must not turn
+     into a row of pills competing with the words between them. */
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4.5%, transparent);
+  padding: 0.08em 0.3em;
+  font-size: 0.93em;
+  font-variant-ligatures: none;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
 
-/* ── Tables ────────────────────────────────────────────────────────────── */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] a code {
+  color: inherit;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────────
+   Frameless table: one rule above, one below, one under the header, and 0.5px
+   hairlines between rows. No header wash and no vertical lines, so the table
+   reads as part of the prose instead of a widget dropped into it. Explicit
+   left/right cell padding is kept because the host resets `padding-left: 0`
+   on first cells. Tabular numerals, calm row hover. Wide `.md-table-wide`
+   breakout math stays untouched. */
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] table {
+  margin: 13px 0;
   font-variant-numeric: tabular-nums;
-}
-
-/* Three lines, one wash: the header rules top and bottom, the body carries a
-   hairline per row, and the last row closes the table. The host ships no top or
-   bottom rule, so a table there reads as a stack of floating lines. */
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] thead th {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
-  border-top: 0.5px solid var(--dsw-alias-border-l3);
-  border-bottom: 0.5px solid var(--dsw-alias-border-l3);
-  white-space: nowrap;
-  color: var(--dsw-alias-label-secondary);
-  font-weight: 600;
-}
-
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:last-child td {
-  border-bottom: 0.5px solid var(--dsw-alias-border-l3);
-}
-
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:hover {
-  background: var(--dsw-alias-interactive-bg-hover, rgba(127, 127, 127, 0.04));
+  width: 100%;
+  border-collapse: collapse;
+  border-top: 1px solid var(--dsw-alias-border-l3);
+  border-bottom: 1px solid var(--dsw-alias-border-l3);
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(th, td) {
+  padding: 9px 12px;
   vertical-align: top;
-  /* The host caps a cell at min(30vw, 320px), which wraps a Chinese sentence in
-     a three-column table after six or seven characters. */
-  max-width: min(34vw, 420px);
+  /* The host sizes cells from `--dsh-content-font-size-secondary`, which is one
+     step under body type (14 → 13). CJK glyphs fill their em box, so that extra
+     step plus 1.6 leading reads as a different, tighter voice than the prose
+     around it. Pin the table back to body size and body leading. */
+  font-size: calc(14px + var(--dsh-content-font-delta, 0px));
+  line-height: 1.72;
+  max-width: min(36vw, 440px);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(th, td):first-child {
+  padding-left: 12px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(th, td):last-child {
+  padding-right: 12px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] thead th {
+  background: none;
+  border-top: 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l3);
+  white-space: nowrap;
+  /* 11.5px at weight 600 in tertiary ink with open tracking merges bolded CJK
+     stems into a grey smear. One step larger at normal weight, no tracking,
+     secondary ink: still quieter than the cells, but readable. */
+  color: var(--dsw-alias-label-secondary);
+  font-size: calc(14px + var(--dsh-content-font-delta, 0px) - 1.5px);
+  font-weight: 500;
+  letter-spacing: 0;
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] td {
-  border-bottom-color: var(--dsw-alias-border-l1);
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr {
+  transition: background-color 100ms ease;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:hover {
+    background: color-mix(in srgb, var(--dsw-alias-label-primary) 3%, transparent);
+  }
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] td :not(pre) > code {
   white-space: nowrap;
 }
 
-/* ── Media and dividers ────────────────────────────────────────────────── */
+/* ── Links, Math (KaTeX), Media & Dividers ───────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] a {
+  /* Links keep their hue but lose the shout: a hairline underline carries the
+     affordance so a dense sentence is not punctuated by bright blue … */
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 32%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 120ms ease;
+}
+
+@media (hover: hover) {
+  /* … and get it back the moment the pointer lands on them. */
+  html[data-liangheng-chat="on"] [data-chat-group-part="response"] a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] .katex-display {
+  margin: 16px 0;
+  padding: 6px 4px;
+  scrollbar-width: thin;
+}
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] img {
-  border-radius: var(--dsw-radius-md, 8px);
-  border: 0.5px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, 0.2));
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+}
+
+/* A media-only paragraph follows the transcript column instead of the image's
+   intrinsic width, so a wide screenshot reads at full size and a small one is
+   not silently shrunk to a caption. Inline images inside a text run are left
+   alone. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(p, figure) > :is(img:only-child, a:only-child > img) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Symmetric breathing before a section rule: whatever block precedes it — a
+   paragraph, a list, a table, a code fence — the gap above the rule must match
+   the 13px that block already keeps from whatever sits above it. Margins
+   between siblings collapse, so pinning the rule's own top margin to that same
+   13px makes both sides equal instead of the rule's default 24px pushing the
+   block away from it. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] * + hr {
+  margin-top: 13px;
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr {
-  margin: 24px 0;
+  margin: 13px 0;
+  height: 0.5px;
+  background: var(--dsw-alias-border-l2);
 }
 
-/* ── Dark theme ────────────────────────────────────────────────────────────
-   The aliases already flip with `body[data-ds-dark-theme]`; only the mixes
-   need a second value, because 3–4% of white on a dark canvas is invisible
-   where 3–4% of black on white is a visible wash. The image edge is the only
-   boundary a picture has, so it is re-stated with the thin dark token. */
+/* Closing verification footer after `---`: compact & calm secondary cadence. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr + ul:last-child {
+  margin-top: 12px;
+  font-size: var(--dsh-content-font-size-secondary, 13px);
+  line-height: 1.65;
+  color: var(--dsw-alias-label-secondary);
+}
 
-html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] thead th {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 12%, transparent);
+/* ═══════════════════════════════════════════════════════════════════════════
+   5. DARK THEME CALIBRATION (`body[data-ds-dark-theme]`)
+   On dark canvases, low-alpha white washes need slightly higher percentages
+   and elevation shadows shift to subtle top-edge light + deeper ambient depth.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])) {
+  box-shadow:
+    inset 0 0 0 1px var(--dsw-alias-border-l2),
+    inset 0 1px 0 rgb(255 255 255 / 5%),
+    0 4px 20px rgb(0 0 0 / 28%);
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])):hover {
+    box-shadow:
+      inset 0 0 0 1px var(--dsw-alias-border-l3),
+      inset 0 1px 0 rgb(255 255 255 / 7%),
+      0 6px 24px rgb(0 0 0 / 34%);
+  }
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-composer-card]:not(:has([data-input-scroll] [aria-haspopup="menu"])):focus-within {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--dsw-alias-state-business-primary) 58%, var(--dsw-alias-border-l3)),
+    0 0 0 3px color-mix(in srgb, var(--dsw-alias-state-business-primary) 16%, transparent),
+    0 8px 30px rgb(0 0 0 / 38%);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-message-bubble] {
+  background: var(--dsw-alias-bg-layer-2);
+  border-color: var(--dsw-alias-border-l2);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-pending-steering] [data-message-bubble] {
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"]:not([data-turn-process-member]) :not(li):not(blockquote):not(td) > blockquote:first-child {
+  background: color-mix(in srgb, var(--dsw-alias-state-business-primary) 10%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] :is([data-turn-process-member], [data-turn-process-inline], [data-step-process]) :not(li):not(blockquote):not(td) > blockquote:first-child {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] .md-code-block {
+  /* A 26% slate shadow is invisible over a dark reply well; depth comes from the
+     ring plus a deeper cast, so the card still reads as raised. */
+  box-shadow:
+    0 0 0 1px var(--dsw-alias-border-l2),
+    0 12px 28px -16px rgb(0 0 0 / 60%);
+  overflow: clip;
 }
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] [data-code-block-banner] {
+  background: var(--dsw-alias-bg-layer-1);
+}
+
+/* Cool-neon palette, dark calibration: same hue families lifted for a dark well. */
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] .md-code-block pre {
+  --shiki-token-comment: #8b94ab;
+  --shiki-token-keyword: #f06595;
+  --shiki-token-string: #38d9a9;
+  --shiki-token-string-expression: #38d9a9;
+  --shiki-token-constant: #4dabf7;
+  --shiki-token-function: #b197fc;
+  --shiki-token-parameter: #ffa94d;
+  --shiki-token-punctuation: #adb5bd;
+  --shiki-token-link: #74c0fc;
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] :not(pre) > code {
   background: color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]) :not(pre) > code {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 9%, transparent);
+}
+
+@media (hover: hover) {
+  html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] tbody tr:hover {
+    background: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+  }
 }
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] img {
   border-color: var(--dsw-alias-border-l2-darkmode-thin, var(--dsw-alias-border-l2));
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] kbd {
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   6. REDUCED MOTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-liangheng-chat="on"] [data-variant="think"] [data-disclosure-row],
+  html[data-liangheng-chat="on"] [data-variant="think"][data-expanded] [data-open] > :not([data-disclosure-header]),
+  html[data-liangheng-chat="on"] [data-step-process] button[data-process-activity],
+  html[data-liangheng-chat="on"] [data-chat-flow-kind="tool-call"] [data-disclosure-row],
+  html[data-liangheng-chat="on"] [data-composer-card],
+  html[data-liangheng-chat="on"] [data-composer-dock],
+  html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] button,
+  html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr {
+    transition: none;
+  }
 }

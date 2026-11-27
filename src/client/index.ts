@@ -33,6 +33,7 @@ import { LiangShenSettingsCard, LiangShenSettingsCardController, type LiangShenS
 import { en, zh, type LiangShenKey } from './locales.ts'
 import { mainViewSessionId } from './main-session.ts'
 import { MermaidFence } from './MermaidFence.tsx'
+import { CheckListFence } from './CheckListFence.tsx'
 import { installPluginCard } from './plugin-card-seat.ts'
 import { createServedEntryForm } from './settings-entry-form.ts'
 import './ChatPolish.css'
@@ -246,6 +247,25 @@ export function apply(ctx: ClientContext): void {
       return () => {}
     }
   })
+
+  // Verification ledgers: `check` (and its plural, because the language is
+  // guessable) render as a compact tick/key/value shelf instead of raw CLI
+  // output. Any other fence keeps the host's code block.
+  for (const fenceKey of ['check', 'checks']) {
+    ctx.slots.inject('conversation.chat.markdown.fence', () => {
+      try {
+        const unregister = ctx.slots.register({
+          name: 'conversation.chat.markdown.fence',
+          key: fenceKey,
+          id: `dsh-liangheng/fence/${fenceKey}`,
+          locale: NS,
+        }, CheckListFence)
+        return () => { unregister() }
+      } catch {
+        return () => {}
+      }
+    })
+  }
 
   // Scope chat typography/table/image polish strictly to active LiangHeng sessions.
   ctx.effect(() => {

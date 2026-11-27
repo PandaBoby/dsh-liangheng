@@ -13,6 +13,32 @@
   路径；`rm` 临时文件独立成一步，且不删正文仍在引用的路径；只对本轮有意义的证据改用
   `read_image` 工具结果或 `present` 承载。`src/composition.test.ts` 增加对应断言（141 tests）。
 
+- **验证账本渲染（`check` fence）**：`conversation.chat.markdown.fence` 新增 `check` / `checks`
+  两个键位，把 ```check 围栏渲染成紧凑核验账本卡片：`✓` / `✗` / `·` 三态、键值两列对齐、
+  流式中逐行渲染（最后一行不完整只意味着少一行，不像图表那样必须整段解析）、无有效行或非
+  字符串正文时回落到宿主的普通代码块。解析器在 [check-list.ts](src/client/check-list.ts)
+  （支持 ASCII `:` 与全角 `：` 分隔、空行为排版留白），渲染在
+  [CheckListFence.tsx](src/client/CheckListFence.tsx)，样式在
+  [CheckListFence.module.css](src/client/CheckListFence.module.css)。行文本保留 `✓ 键: 值`
+  原样，因此没装本插件的客户端仍把围栏当作可读代码块；Persona 第 5 节同步新增
+  「Verification ledger」规则，`src/client/check-list.test.ts` 覆盖解析边界。
+
+### Changed
+
+- **导语卡标签按位置分家（Persona 第 5 节）**：`> **结论**：...` 只留给最终答复，且每条回复
+  仅一次；工具调用之间的过程说明改用 `> **分析**：...`。此前一条回复里可出现两个同款
+  「结论」导语卡，过程侧那块在视觉上与真正的结论竞争头条。`presets/liangheng/agent.cordis.yml`
+  改写该条规则，`src/composition.test.ts` 增加对应断言（149 tests）。
+
+- **聊天排版整体重写**：[ChatPolish.css](src/client/ChatPolish.css) 以「安静权威、单层 chrome」
+  为设计语言重写 —— 轮次间距、标题阶梯、引用导语卡、代码块卡骨、表格、行内码、图片与
+  KaTeX 一律改由比例、节奏、字阶对比与发丝线撑起层级，不再用边框 + 阴影 + 重填充重复做同一件
+  事；所有选择器仍严格作用在 `html[data-liangheng-chat="on"]` 之下，并继续对齐宿主字号档位、
+  宽度拖拽轴、深浅色与 reduced-motion。
+  [MermaidFence.module.css](src/client/MermaidFence.module.css) 同步改用真实主题别名（此前引用的
+  `--dsw-alias-surface-*` 等别名并不存在，暗色下会失配）。新增
+  [chat-polish.test.ts](src/client/chat-polish.test.ts) 守住这些结构不变量（作用域、`overflow`
+  取舍、表格与引用卡的间距节奏）。`.gitignore` 增加 `.probe/`，本地探针截图不再入库。
 ## [0.2.1] - 2026-11-27
 
 ### Added

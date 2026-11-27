@@ -1,8 +1,11 @@
+/* Mermaid diagram card: shares the exact card geometry, tonal header wash,
+ * and Light/Dark DSH design tokens as `.md-code-block` in ChatPolish.css. */
+
 .card {
   margin: 16px 0;
-  border: 0.5px solid var(--dsw-alias-border-l2, rgba(127, 127, 127, 0.22));
-  border-radius: var(--dsw-radius-md, 10px);
-  background: var(--dsw-alias-surface-base, rgba(127, 127, 127, 0.04));
+  border-radius: 12px;
+  background: var(--dsw-alias-markdown-code-block);
+  box-shadow: inset 0 0 0 0.5px var(--dsw-alias-border-l2);
   overflow: hidden;
 }
 
@@ -11,10 +14,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
-  border-bottom: 0.5px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, 0.14));
-  background: var(--dsw-alias-interactive-bg-secondary, rgba(127, 127, 127, 0.05));
+  padding: 7px 14px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4.5%, var(--dsw-alias-markdown-code-block));
   font-size: 12px;
+}
+
+:global(body[data-ds-dark-theme]) .toolbar {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, var(--dsw-alias-markdown-code-block));
 }
 
 .badge {
@@ -23,150 +30,165 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--dsw-alias-label-secondary, #666);
+  color: var(--dsw-alias-label-secondary);
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .tabs {
   display: inline-flex;
   padding: 2px;
-  border-radius: 6px;
-  background: var(--dsw-alias-interactive-bg-hover, rgba(127, 127, 127, 0.08));
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
+}
+
+:global(body[data-ds-dark-theme]) .tabs {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 9%, transparent);
 }
 
 .btn {
   appearance: none;
   border: none;
   background: transparent;
-  color: var(--dsw-alias-label-secondary, #666);
+  color: var(--dsw-alias-label-secondary);
+  font-family: var(--dsw-font-family);
   font-size: 11px;
   line-height: 20px;
   padding: 0 8px;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
 }
 
-.btn:hover {
-  color: var(--dsw-alias-label-primary, inherit);
-  background: var(--dsw-alias-interactive-bg-hover, rgba(127, 127, 127, 0.1));
+@media (hover: hover) {
+  .btn:hover {
+    color: var(--dsw-alias-label-primary);
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
 }
 
 .btnActive {
-  color: var(--dsw-alias-label-primary, inherit);
-  background: var(--dsw-alias-surface-raised, #fff);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  color: var(--dsw-alias-label-primary);
+  background: var(--dsw-alias-bg-base);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
   font-weight: 500;
 }
 
+:global(body[data-ds-dark-theme]) .btnActive {
+  background: var(--dsw-alias-bg-layer-3);
+  box-shadow: none;
+}
+
 .canvasWrap {
-  padding: 12px;
+  padding: 18px 16px;
   overflow-x: auto;
   display: flex;
   justify-content: center;
   cursor: zoom-in;
+  scrollbar-width: thin;
 }
 
 .codeWrap > :first-child {
   margin: 0 !important;
   border-radius: 0 !important;
   border: none !important;
+  box-shadow: none !important;
 }
 
-/* Theme-aware SVG styling */
+/* Theme-aware SVG styling using real DSH design tokens */
 .canvasWrap :global(.lh-mermaid-svg),
 .modalSvg :global(.lh-mermaid-svg) {
   max-width: 100%;
   height: auto;
   display: block;
-  font-family: var(--ds-font-family-sans, -apple-system, BlinkMacSystemFont, sans-serif);
+  font-family: var(--dsw-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
 }
 
 .canvasWrap :global(.lh-node-shape),
 .modalSvg :global(.lh-node-shape) {
-  fill: var(--dsw-alias-surface-raised, #ffffff);
-  stroke: var(--dsw-alias-border-l3, rgba(100, 116, 139, 0.45));
-  stroke-width: 1.3;
+  fill: var(--dsw-alias-bg-layer-1, var(--dsw-alias-bg-base));
+  stroke: var(--dsw-alias-border-l3);
+  stroke-width: 1.2;
 }
 
 .canvasWrap :global(.lh-node-diamond),
 .modalSvg :global(.lh-node-diamond) {
-  fill: var(--dsw-alias-state-business-bg, rgba(76, 110, 245, 0.08));
-  stroke: var(--dsw-alias-state-business-primary, #4c6ef5);
+  fill: color-mix(in srgb, var(--dsw-alias-state-business-primary) 9%, var(--dsw-alias-bg-base));
+  stroke: var(--dsw-alias-state-business-primary);
 }
 
 .canvasWrap :global(.lh-state-point),
 .modalSvg :global(.lh-state-point) {
-  fill: var(--dsw-alias-label-primary, #1f2937);
+  fill: var(--dsw-alias-label-primary);
 }
 
 .canvasWrap :global(.lh-node-text),
 .modalSvg :global(.lh-node-text),
 .canvasWrap :global(.lh-seq-msg-left),
 .modalSvg :global(.lh-seq-msg-left) {
-  fill: var(--dsw-alias-label-primary, #1f2937);
+  fill: var(--dsw-alias-label-primary);
   font-size: 13px;
 }
 
 .canvasWrap :global(.lh-edge),
 .modalSvg :global(.lh-edge) {
-  stroke: var(--dsw-alias-label-secondary, #64748b);
+  stroke: var(--dsw-alias-label-tertiary);
 }
 
 .canvasWrap :global(.lh-arrow-head),
 .modalSvg :global(.lh-arrow-head) {
-  fill: var(--dsw-alias-label-secondary, #64748b);
+  fill: var(--dsw-alias-label-tertiary);
 }
 
 .canvasWrap :global(.lh-edge-label rect),
 .modalSvg :global(.lh-edge-label rect) {
-  fill: var(--dsw-alias-surface-base, #f8fafc);
-  stroke: var(--dsw-alias-border-l1, rgba(100, 116, 139, 0.25));
-  stroke-width: 0.8;
+  fill: var(--dsw-alias-markdown-code-block);
+  stroke: var(--dsw-alias-border-l2);
+  stroke-width: 0.75;
 }
 
 .canvasWrap :global(.lh-edge-text),
 .modalSvg :global(.lh-edge-text) {
-  fill: var(--dsw-alias-label-secondary, #475569);
+  fill: var(--dsw-alias-label-secondary);
   font-size: 11.5px;
 }
 
 .canvasWrap :global(.lh-subgraph rect),
 .modalSvg :global(.lh-subgraph rect) {
-  fill: var(--dsw-alias-interactive-bg-secondary, rgba(127, 127, 127, 0.05));
-  stroke: var(--dsw-alias-border-l2, rgba(127, 127, 127, 0.28));
+  fill: color-mix(in srgb, var(--dsw-alias-label-primary) 3.5%, transparent);
+  stroke: var(--dsw-alias-border-l2);
   stroke-dasharray: 4, 3;
   stroke-width: 1;
 }
 
 .canvasWrap :global(.lh-sg-title),
 .modalSvg :global(.lh-sg-title) {
-  fill: var(--dsw-alias-label-secondary, #64748b);
+  fill: var(--dsw-alias-label-secondary);
   font-size: 11.5px;
   font-weight: 600;
 }
 
 .canvasWrap :global(.lh-seq-life),
 .modalSvg :global(.lh-seq-life) {
-  stroke: var(--dsw-alias-border-l3, rgba(127, 127, 127, 0.35));
+  stroke: var(--dsw-alias-border-l3);
   stroke-dasharray: 4, 4;
   stroke-width: 1.1;
 }
 
 .canvasWrap :global(.lh-seq-divider),
 .modalSvg :global(.lh-seq-divider) {
-  stroke: var(--dsw-alias-border-l2, rgba(127, 127, 127, 0.35));
+  stroke: var(--dsw-alias-border-l2);
   stroke-dasharray: 4, 3;
 }
 
 .canvasWrap :global(.lh-seq-note rect),
 .modalSvg :global(.lh-seq-note rect) {
-  fill: var(--dsw-alias-state-warning-bg, rgba(245, 159, 0, 0.1));
-  stroke: var(--dsw-alias-border-l2, rgba(245, 159, 0, 0.35));
+  fill: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 12%, var(--dsw-alias-bg-base));
+  stroke: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 42%, var(--dsw-alias-border-l2));
 }
 
 /* Zoom lightbox */
@@ -174,7 +196,9 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(0, 0, 0, 0.62);
+  background: var(--dsw-alias-bg-mask-3, rgba(0, 0, 0, 0.52));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,10 +208,10 @@
 .dialog {
   max-width: min(94vw, 1200px);
   max-height: 90vh;
-  background: var(--dsw-alias-surface-base, #fff);
-  border: 1px solid var(--dsw-alias-border-l2, rgba(127, 127, 127, 0.3));
-  border-radius: 12px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  background: var(--dsw-alias-bg-layer-1, var(--dsw-alias-bg-base));
+  border: 0.5px solid var(--dsw-alias-border-l3);
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -197,11 +221,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 0.5px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, 0.2));
+  padding: 10px 16px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 3.5%, transparent);
 }
 
 .modalSvg {
-  padding: 20px;
+  padding: 24px;
   overflow: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }

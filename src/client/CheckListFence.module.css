@@ -1,0 +1,109 @@
+/* Verification ledger card: the compact shelf from the C1 design — a 2px status
+ * rule, 30px rows, and a three-column grid (tick / key / value) so a column of
+ * ledgers lines up with each other. The value keeps the monospace face and
+ * lets CJK fall through to the system font, which is what stops a mixed
+ * `tests: 142 passed · 14 files` row from reading as two spliced typefaces. */
+
+.card {
+  margin: 13px 0;
+  border-radius: 12px;
+  border-top: 2px solid color-mix(in srgb, #0e9f6e 55%, transparent);
+  background: var(--dsw-alias-bg-layer-1);
+  box-shadow:
+    0 0 0 1px var(--dsw-alias-border-l2),
+    0 1px 2px rgb(15 23 42 / 4%),
+    0 10px 24px -14px rgb(15 23 42 / 26%);
+  overflow: clip;
+}
+
+.card[data-failed] {
+  border-top-color: color-mix(in srgb, #e5484d 62%, transparent);
+}
+
+:global(body[data-ds-dark-theme]) .card {
+  box-shadow:
+    0 0 0 1px var(--dsw-alias-border-l2),
+    0 12px 28px -16px rgb(0 0 0 / 60%);
+  border-top-color: color-mix(in srgb, #3ddc97 55%, transparent);
+}
+
+:global(body[data-ds-dark-theme]) .card[data-failed] {
+  border-top-color: color-mix(in srgb, #ff6b6b 62%, transparent);
+}
+
+.row {
+  display: grid;
+  /* The key column is fixed so consecutive ledgers and rows align vertically;
+     a value-only row leaves it empty rather than shifting the column. 84px is
+     the widest shipped key (`typecheck`) plus its tracking. */
+  grid-template-columns: 18px 84px minmax(0, 1fr);
+  align-items: center;
+  min-height: 30px;
+  padding: 0 12px 0 10px;
+}
+
+.row + .row {
+  border-top: 1px solid color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+}
+
+.tick {
+  /* Flex centring, not text centring: the glyph `·` sits low in its em box, so
+     a text-baseline tick reads as off-centre beside ✓ and ✗. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.tick[data-status="pass"] { color: #0e9f6e; }
+.tick[data-status="fail"] { color: #e5484d; }
+
+/* The note mark is drawn, not typed: U+00B7 is both too thin and too low next
+   to a 700-weight check, so the neutral row gets a 5px dot of its own. */
+.tick[data-status="info"] {
+  color: var(--dsw-alias-label-secondary);
+  font-size: 0;
+}
+
+.tick[data-status="info"]::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+:global(body[data-ds-dark-theme]) .tick[data-status="pass"] { color: #3ddc97; }
+:global(body[data-ds-dark-theme]) .tick[data-status="fail"] { color: #ff6b6b; }
+
+.key {
+  font-family: var(--ds-font-family-code, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dsw-alias-label-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value {
+  /* Menlo for latin, the system CJK face behind it: a `tests: 142 passed ·
+     14 files` row keeps its digits aligned while the Chinese note beside it
+     keeps its normal weight and width. */
+  font-family: Menlo, "SF Mono", "PingFang SC", ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dsw-alias-label-primary);
+  /* A full-height rule, not a short one: the column edge is what separates the
+     key from the value, and 28px keeps a long value off the line. */
+  border-left: 1px solid color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent);
+  padding-left: 28px;
+  overflow-wrap: anywhere;
+}
