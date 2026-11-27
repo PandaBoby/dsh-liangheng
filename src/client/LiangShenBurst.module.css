@@ -15,6 +15,15 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  /*
+   * The slot this overlay mounts from sits inside the composer row, whose
+   * computed line-height is a fixed 24px. Inheriting that into a 44px title
+   * clips the glyphs: `background-clip: text` paints only inside the line box,
+   * so everything above it renders as transparent. Reset the type context at
+   * the overlay root, where the inherited value is not wanted at all.
+   */
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .flash {
@@ -59,7 +68,9 @@
 }
 
 .bannerName {
+  display: block;
   font-size: 44px;
+  line-height: 1.35;
   font-weight: 800;
   letter-spacing: 0.16em;
   background: linear-gradient(180deg, #fff6d0, #ffc93c 55%, #b8730a);
