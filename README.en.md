@@ -1,5 +1,7 @@
 <div align="center">
 
+<p align="center"><img src="docs/assets/whale-256.png" width="116" height="116" alt="LiangHeng" /></p>
+
 <h1>dsh-liangheng</h1>
 
 <p><strong>LiangHeng (梁衡模式): a focused coding agent preset for DeepSeek Harness — intent-first clarity, first-principles engineering, native parallel speed, and rigorously verified honest output.</strong></p>
@@ -31,7 +33,7 @@
 </div>
 
 <p align="center">
-  <img src="docs/assets/hero.png" alt="dsh-liangheng: the tool surface collapses into run_code, with seven high-fan-out families paged in on demand" width="100%" />
+  <img src="docs/assets/hero.png" alt="dsh-liangheng: the whale mark and the one-line positioning" width="100%" />
 </p>
 
 ---

@@ -1,5 +1,7 @@
 <div align="center">
 
+<p align="center"><img src="docs/assets/whale-256.png" width="116" height="116" alt="梁衡模式" /></p>
+
 <h1>dsh-liangheng</h1>
 
 <p><strong>梁衡模式（LiangHeng）：面向 DeepSeek Harness 的专项编码 Agent 预设——在准确理解用户意图的前提下，以第一性原理架构、原生并发速度与严格认知诚实交付工程代码。</strong></p>
@@ -31,7 +33,7 @@
 </div>
 
 <p align="center">
-  <img src="docs/assets/hero.png" alt="dsh-liangheng：工具面收拢为 run_code，7 个高扇出工具族按需分页进场" width="100%" />
+  <img src="docs/assets/hero.png" alt="dsh-liangheng 梁衡模式：鲸鱼标志与项目定位" width="100%" />
 </p>
 
 ---
