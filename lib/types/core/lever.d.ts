@@ -1,56 +1,27 @@
 /**
- * LiangShen lever logic — framework-free, no DOM, compiled by both programs.
+ * LiangHeng preset identity and the burst trigger rule — framework-free, no
+ * DOM, compiled by both programs.
  *
- * The lever is a homepage control beside the model selector: pulling it down
- * turns the current session's preset into LiangShen mode, pushing it up
- * restores the preset the user was on before. The facts it needs are the
- * current session's preset, whether that session may still change preset at
- * all, and the preset roster; the decisions are pure so they can be tested
- * without the browser runtime.
- *
- * A preset is fixed once a session starts (the host refuses the switch with
- * `agent-preset/locked`), so the lever is only meaningful while the session is
- * blank — which is exactly the new-session screen it renders on.
+ * The composer owns no mode control any more: the preset picker above it is the
+ * only place a preset is chosen, and this plugin only answers the landing with
+ * the burst. The rule is pure so it can be tested without the browser runtime.
  */
-/** The preset id this lever turns on; also the preset directory name. */
+/** The preset id this plugin declares; also the preset directory name. */
 export declare const LIANGHENG_PRESET_ID = "liangheng";
 /** Backward-compatible alias for the preset id. */
 export declare const LIANGSHEN_PRESET_ID = "liangheng";
-/** What the lever currently reports. */
-export type LeverState = 
-/** LiangShen mode is the current preset. */
-'on'
-/** Another preset is current and the session may still switch. */
- | 'off'
-/** The session has started; the preset can no longer change. */
- | 'locked'
-/** The deployment does not supply the LiangShen preset. */
- | 'missing';
-/** The facts one lever decision reads. */
-export interface LeverFacts {
-    /** Whether the current session may still change preset (blank). */
-    blank: boolean;
-    /** The preset the current session runs, when the session reports one. */
-    agentPreset?: string;
-    /** Ids every usable roster row supplies, in roster order. */
-    available: readonly string[];
-    /** The deployment default preset id, when the roster names one. */
-    fallback?: string;
-    /** The preset the user ran before the last pull-down, remembered by the client. */
-    previous?: string;
-}
-/** Resolve what the lever shows for one set of facts. */
-export declare function leverState(facts: LeverFacts): LeverState;
 /**
- * The preset a push-up restores: the preset the user was on before pulling the
- * lever, else the deployment default, else the first usable roster row that is
- * not the LiangHeng preset. A candidate is skipped when it is the LiangHeng
- * preset itself (restoring it would be a no-op) or when the roster no longer
- * supplies it. That last resort is what keeps the push direction alive when the
- * deployment default IS LiangHeng mode: `fallback` is skipped then, and after a
- * reload `previous` is gone, so without it the gesture would have no target.
+ * Whether a preset reading means "LiangHeng mode just landed" and should fire
+ * the burst.
+ *
+ * Only a change INTO this preset counts, and only inside one session: the first
+ * reading of a page, a move between two sessions that already run it, and a
+ * session whose preset can no longer change all read as nothing happening. The
+ * session guard is what keeps the burst from greeting every page load.
+ * @param previous - the preset read before this update; undefined on a new session.
+ * @param next - the preset read now.
+ * @param sameSession - whether both readings belong to one main-view session.
+ * @returns true when the burst should play.
  */
-export declare function restoreTarget(facts: LeverFacts): string | undefined;
-/** Whether the lever can act at all in its current state. */
-export declare function isActionable(state: LeverState): boolean;
+export declare function presetLanded(previous: string | undefined, next: string | undefined, sameSession: boolean): boolean;
 //# sourceMappingURL=lever.d.ts.map

@@ -117,25 +117,24 @@ export interface LiangShenFormSpec<T> {
     decode?: (section: unknown) => T | undefined;
 }
 /**
- * Required client services: the slot registry, locale, sessions, the shared
- * configuration forms, and the roster Remote. Both `remote` and
- * `remote.agentPresets` are declared: the context proxy refuses an uninjected
- * service, and a nested service name does not imply its parent, so reading
- * `ctx.remote.agentPresets` needs `remote` as well.
+ * Required client services: the slot registry, locale, sessions, and the shared
+ * configuration forms. No Remote namespace is injected any more: the preset
+ * picker above the composer performs the switch, and this half only reads the
+ * `agentPreset` projection the host publishes on the session catalog.
  */
 export declare const inject: string[];
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
-        /** The LiangHeng lever copy. */
+        /** The LiangHeng copy. */
         'liangheng': LiangShenKey;
     }
 }
-export { LiangShenLever } from './LiangShenLever.tsx';
-export { LeverController, type LeverFace, type LeverSnapshot } from './lever-controller.ts';
-export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts';
+export { LiangShenBurst } from './LiangShenBurst.tsx';
+export { PresetWatcher, type BurstFace, type BurstSnapshot } from './preset-watcher.ts';
+export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, presetLanded } from '../core/lever.ts';
 /**
- * Mount the lever: register the copy, follow the roster and the current
- * session, and claim the composer tool row.
+ * Mount the browser half: register the copy, follow the preset the session
+ * catalog reports, and play the burst when it lands on LiangHeng mode.
  * @param ctx - the browser plugin context.
  */
 export declare function apply(ctx: ClientContext): void;

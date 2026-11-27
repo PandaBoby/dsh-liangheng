@@ -41,7 +41,7 @@
 
 ## Core Positioning
 
-`dsh-liangheng` is an **independent focused-coding agent preset** for [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (aligned and verified on `0.2.2-rc.5`), derived from [LiangShen](docs/upstream/README.en.md). It ships with its own package name (`dsh-liangheng`), preset ID (`liangheng`), client UI slot (`liangheng-lever`), and settings/locale namespaces so it runs cleanly side-by-side with `@linxin666/dsh-liangshen`.
+`dsh-liangheng` is an **independent focused-coding agent preset** for [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (aligned and verified on `0.2.2-rc.5`), derived from [LiangShen](docs/upstream/README.en.md). It ships with its own package name (`dsh-liangheng`), preset ID (`liangheng`), client UI slot (`liangheng-burst`), and settings/locale namespaces so it runs cleanly side-by-side with `@linxin666/dsh-liangshen`.
 
 1. **Lean Coding Persona (`dispatcher: false` by default)**: Replaces the 24.6 KB heavy coordinator block by default with a high-signal solo-first coding discipline + opportunistic parallel `subagent`/`subagent_fork` delegation, an intent gate (`ask_user_question` only on high-impact ambiguity), defensive external boundary alias compatibility, two-pass hypothesis fuses, strict YAGNI, explicit Verified/Inferred/Unverified reporting, and Section 5 clean output formatting rules (`> **结论**` lead callout, wrap-safe `≥ 4`-column wide tables, disambiguated `[dir/file.tsx:24–30](<...>)` links, CJK typography, and Mermaid diagrams).
 2. **Native Wire by Default (`presentation: 'native'`) & Rich Visuals**: Keeps the native roster on the wire for lower latency, native parallel tool calls, and streaming diff cards. Drops redundant `str_replace_editor`, enables `apply_patch`, `web_fetch`, and `present` deliverable cards, preserves host file/image reference sections for inline/hover local images, and registers a zero-dependency theme-aware **Mermaid SVG fence renderer** + session-scoped chat visual polish (`data-liangheng-chat="on"`) on the client.
@@ -80,7 +80,7 @@ After merging **Defensive boundary compatibility** and stronger **Native paralle
 
 ### 1. Repository Unit & Composition Suite (13 Test Files / 126 Passing Tests)
 
-- **Host & Lever UI**: [src/index.test.ts](src/index.test.ts), [src/announce.test.ts](src/announce.test.ts), [src/core/lever.test.ts](src/core/lever.test.ts) — `DSH_HOME` resolution, preset metadata, state store/toggle mechanics, compatibility aliases, and idempotent mounting (34 tests).
+- **Host & landing burst**: [src/index.test.ts](src/index.test.ts), [src/announce.test.ts](src/announce.test.ts), [src/core/lever.test.ts](src/core/lever.test.ts) — `DSH_HOME` resolution, preset metadata, the preset-landing rule, compatibility aliases, and idempotent mounting (34 tests).
 - **Strict YAML Composition**: [src/composition.test.ts](src/composition.test.ts) — strict YAML parser guards, relative module URL resolution, 3-row paging invariant (`pagedToolPatterns` & `idleReclaimSteps`), `present` mounting, and `native` ↔ `tool-executor-ptc` sync (29 tests).
 - **Client Mermaid SVG Renderer**: [src/client/mermaid-lite.test.ts](src/client/mermaid-lite.test.ts) — flowchart (with subgraphs, CJK & quoted labels, XML escaping), sequenceDiagram (messages, self-calls, Note, alt/else), stateDiagram-v2, and graceful fallback on unsupported diagram types (4 tests).
 - **Paging & Runtime Plugins**: [presets/liangheng/paging.test.mjs](presets/liangheng/paging.test.mjs) (30 tests) + 7 module test suites covering `subagent-routes`, `dispatch-guard`, `fact-ledger`, `working-context`, `tool-activate`, `tool-catalog` (`present` curation), and `minimal-prompt` (`file-reference` retention) (29 tests).
@@ -152,7 +152,7 @@ Two things that bite:
 - `link:` records an absolute path on this machine, so run it from the repository root; move or delete the checkout and the profile entry goes stale — re-`add` it.
 - After editing source, `npm run build` is not enough: **commit `lib/` too**. CI rebuilds and diffs `lib/` file by file, and fails on any difference.
 
-Restart `dsh web` or the desktop client, open a **new empty session**, and toggle **LiangHeng mode** from the composer lever or preset picker.
+Restart `dsh web` or the desktop client, open a **new empty session**, and pick **LiangHeng mode** in the preset picker above the composer; the mode landing plays one burst.
 
 ---
 

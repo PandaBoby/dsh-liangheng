@@ -1,23 +1,11 @@
 /**
- * Lever copy: zh-first dictionary with an English counterpart. The zh side is
- * the key-set source of truth; `packages/dsh-i18n` mirrors the keys into the
- * centralized ru dictionary and `pnpm i18n:check` enforces the parity.
+ * Browser-half copy: zh-first dictionary with an English counterpart. The zh
+ * side is the key-set source of truth; `packages/dsh-i18n` mirrors the keys
+ * into the centralized ru dictionary and `pnpm i18n:check` enforces parity.
  */
-/** Lever copy, key source of truth. */
+/** Browser-half copy, key source of truth. */
 export declare const zh: {
-    'lever.a11y': string;
     'lever.name': string;
-    'lever.hint.pull': string;
-    'lever.hint.push': string;
-    'lever.hint.locked': string;
-    'lever.hint.missing': string;
-    'lever.state.off': string;
-    'lever.readout.on': string;
-    'lever.readout.off': string;
-    'lever.failed.locked': string;
-    'lever.failed.missing': string;
-    'lever.failed.timeout': string;
-    'lever.failed.failed': string;
     'burst.line1': string;
     'burst.line2': string;
     'settings.title': string;

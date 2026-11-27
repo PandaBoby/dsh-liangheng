@@ -41,7 +41,7 @@
 
 ## 核心定位
 
-`dsh-liangheng` 是面向 [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh)（针对 `0.2.2-rc.5` 深度对齐）的**独立专项编码 Agent 预设**，衍生自 [梁神模式（LiangShen）](docs/upstream/README.zh.md)。它拥有独立的包名（`dsh-liangheng`）、预设 ID（`liangheng`）、客户端 UI 槽位（`liangheng-lever`）及设置/多语言命名空间，**可与上游 `@linxin666/dsh-liangshen` 并存而互不冲突**。
+`dsh-liangheng` 是面向 [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh)（针对 `0.2.2-rc.5` 深度对齐）的**独立专项编码 Agent 预设**，衍生自 [梁神模式（LiangShen）](docs/upstream/README.zh.md)。它拥有独立的包名（`dsh-liangheng`）、预设 ID（`liangheng`）、客户端 UI 槽位（`liangheng-burst`）及设置/多语言命名空间，**可与上游 `@linxin666/dsh-liangshen` 并存而互不冲突**。
 
 围绕「**理解意图 → 最优方案 → 极速执行 → 严谨诚实**」，`dsh-liangheng` 在系统提示词、工具线协议、上下文裁剪与运行时守卫四层做了定向强化：
 
@@ -93,7 +93,7 @@
 
 | 模块层 | 测试文件 | 覆盖范围与关键不变量 |
 | :--- | :--- | :--- |
-| 宿主 & UI 拨杆 | [src/index.test.ts](src/index.test.ts)、[src/announce.test.ts](src/announce.test.ts)、[src/core/lever.test.ts](src/core/lever.test.ts) | `DSH_HOME` 解析、预设声明与本地化元数据、拨杆状态读写、兼容性别名与幂等挂载（34 项） |
+| 宿主 & 落地动效 | [src/index.test.ts](src/index.test.ts)、[src/announce.test.ts](src/announce.test.ts)、[src/core/lever.test.ts](src/core/lever.test.ts) | `DSH_HOME` 解析、预设声明与本地化元数据、预设落地判定、兼容性别名与幂等挂载（34 项） |
 | 严格配置组合 | [src/composition.test.ts](src/composition.test.ts) | 无依赖 YAML 严格子集解析、相对路径 URL 化、`pagedToolPatterns` / `idleReclaimSteps` 三行同源约束、`present` 挂载与 `native`↔`ptc` 一致性（29 项） |
 | 客户端 Mermaid 渲染 | [src/client/mermaid-lite.test.ts](src/client/mermaid-lite.test.ts) | 流程图（含子图、中文、引号与 XML 转义）、时序图（消息/自调用/Note/alt）、状态图 SVG 渲染及非支持图种静默回退（4 项） |
 | 分页状态机 | [presets/liangheng/paging.test.mjs](presets/liangheng/paging.test.mjs) | 命名空间提取、LRU=3 驱逐、事件流重放、`tool/ptc-dispatch` 与 `idleReclaimSteps` 延迟回收（30 项） |
@@ -190,7 +190,7 @@ dsh plugin --profile web add link:"$PWD"
 - `link:` 记的是本机绝对路径，所以必须先 `cd` 进仓库根目录再执行；仓库挪了位置或删了，profile 里那条链接就失效，需要重新 `add`。
 - 改完源码后不仅要 `npm run build`，**还要把 `lib/` 一起提交**：CI 会重新构建并与仓库里的 `lib/` 逐文件比对，不一致即失败。
 
-重启 `dsh web` 或桌面客户端，打开一个**全新的空会话**，通过输入框左侧拨杆或预设选择器切换至「梁衡模式」（会话产生消息后锁定预设，不可中途切换）。
+重启 `dsh web` 或桌面客户端，打开一个**全新的空会话**，在输入框上方的预设选择器里切到「梁衡模式」，落地时会播放一次开机式动效（会话产生消息后锁定预设，不可中途切换）。
 
 ---
 

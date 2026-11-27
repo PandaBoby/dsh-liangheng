@@ -27,8 +27,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-slots'
 import type { ConfigForm, ConfigForms } from '@deepseek-ai/dsh-client-ui-settings/client'
 // Type-only: pulls the settings-surface Context merge (ctx.configForms).
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
-import { LiangShenLever } from './LiangShenLever.tsx'
-import { LeverController } from './lever-controller.ts'
+import { LiangShenBurst } from './LiangShenBurst.tsx'
+import { PresetWatcher } from './preset-watcher.ts'
 import { LiangShenSettingsCard, LiangShenSettingsCardController, type LiangShenSettings } from './LiangShenSettingsCard.tsx'
 import { en, zh, type LiangShenKey } from './locales.ts'
 import { mainViewSessionId } from './main-session.ts'
@@ -156,28 +156,27 @@ export interface LiangShenFormSpec<T> {
 }
 
 /**
- * Required client services: the slot registry, locale, sessions, the shared
- * configuration forms, and the roster Remote. Both `remote` and
- * `remote.agentPresets` are declared: the context proxy refuses an uninjected
- * service, and a nested service name does not imply its parent, so reading
- * `ctx.remote.agentPresets` needs `remote` as well.
+ * Required client services: the slot registry, locale, sessions, and the shared
+ * configuration forms. No Remote namespace is injected any more: the preset
+ * picker above the composer performs the switch, and this half only reads the
+ * `agentPreset` projection the host publishes on the session catalog.
  */
-export const inject = ['slots', 'locale', 'sessions', 'configForms', 'remote', 'remote.agentPresets']
+export const inject = ['slots', 'locale', 'sessions', 'configForms']
 
 declare module '@deepseek-ai/dsh-client-ui-slots' {
   interface LocaleNamespaceMap {
-    /** The LiangHeng lever copy. */
+    /** The LiangHeng copy. */
     'liangheng': LiangShenKey
   }
 }
 
-export { LiangShenLever } from './LiangShenLever.tsx'
-export { LeverController, type LeverFace, type LeverSnapshot } from './lever-controller.ts'
-export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, leverState, restoreTarget, type LeverFacts, type LeverState } from '../core/lever.ts'
+export { LiangShenBurst } from './LiangShenBurst.tsx'
+export { PresetWatcher, type BurstFace, type BurstSnapshot } from './preset-watcher.ts'
+export { LIANGHENG_PRESET_ID, LIANGSHEN_PRESET_ID, presetLanded } from '../core/lever.ts'
 
 /**
- * Mount the lever: register the copy, follow the roster and the current
- * session, and claim the composer tool row.
+ * Mount the browser half: register the copy, follow the preset the session
+ * catalog reports, and play the burst when it lands on LiangHeng mode.
  * @param ctx - the browser plugin context.
  */
 export function apply(ctx: ClientContext): void {
@@ -189,13 +188,13 @@ export function apply(ctx: ClientContext): void {
     }
   }, 'liangheng: lever dictionaries')
 
-  const controller = new LeverController(ctx)
-  ctx.effect(() => () => controller.dispose(), 'liangheng: lever controller')
+  const watcher = new PresetWatcher(ctx)
+  ctx.effect(() => () => watcher.dispose(), 'liangheng: preset watcher')
   try {
-    controller.start()
+    watcher.start()
   } catch {
-    // An unavailable sessions or Remote service leaves the lever inert; the
-    // view still renders and reports what it knows.
+    // An unavailable session catalog leaves the overlay silent; the rest of the
+    // browser half still mounts.
   }
 
   // Plugin configuration card: one staged form over the `liangheng` settings
@@ -214,7 +213,7 @@ export function apply(ctx: ClientContext): void {
     })
     ctx.effect(() => () => { settingsCard.dispose() }, 'liangheng: settings card')
   } catch {
-    // A missing settings surface leaves the lever working and the card absent;
+    // A missing settings surface leaves the rest working and the card absent;
     // one unavailable service must not take the browser half down.
   }
 
@@ -222,10 +221,11 @@ export function apply(ctx: ClientContext): void {
     try {
       const unregister = ctx.slots.register({
         name: 'conversation.input.right',
-        id: 'liangheng-lever',
-        order: 21,
-        inject: () => controller.face(),
-      }, LiangShenLever)
+        id: 'liangheng-burst',
+        // The entry paints nothing while idle: it is a mount point for the
+        // viewport-fixed overlay, so the composer row keeps the host's layout.
+        inject: () => watcher.face(),
+      }, LiangShenBurst)
       return () => { unregister() }
     } catch {
       return () => {}
