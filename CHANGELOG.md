@@ -5,6 +5,35 @@
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-11-27
+
+### Changed
+
+- **DSH 版本范围挪到规范声明的落点**：`engines.dsh` 此前写成 `dsh.engines.dsh`，而
+  [@deepseek-ai/dsh-package-manifest](https://www.npmjs.com/package/@deepseek-ai/dsh-package-manifest)
+  定义的是顶层 `engines` 下、与 `engines.node` 并列的 `dsh` 键。宿主与 Marketplace 索引生成器
+  都不读私有位置的那一份，条目因此退化成「任意 DSH 版本兼容」。现在范围落在规范位置，
+  `dsh` 段只剩 `bundle` 与 `client`。读取方目前不强制检查该字段，所以这是声明性修正，
+  不改变现有安装行为。
+
+### Added
+
+- **排队消息「取回编辑」**：接管 `conversation.input.dock` 的 `queue` cell（同 id、`priority: -1`
+  的遮蔽注册），把排队条的「编辑」从宿主的内联文本框改成**把整条消息取回输入框**——文本回到
+  光标处，图片重新落成草稿附件，可以继续改图文再发送。宿主对含图片的排队消息直接禁用编辑
+  （`queue.edit.unsupported`），这是它唯一做不到的事。顺序上先取回内容、再移除队列条目，
+  失败时条目留在队列里（重复可恢复，丢失不可恢复）。**已知边界**：队列里带文件（非图片）的
+  消息仍走宿主行为（编辑按钮禁用并提示），因为宿主没有暴露文件附件的字节通道，宿主附件注册表
+  只收浏览器 `File`。**操作区改版**：主操作改为常驻文字「取回编辑」（整行也可点），插话只在有
+  回复运行时出现，删除收进 `⋯` 菜单（附「不进草稿」说明），命中区 28→32px，插话图标由纸飞机
+  改为折返箭头——纸飞机在聊天语境里读作「发送这条」，与「插给正在跑的回复」相反。依赖宿主
+  `ConversationController.createDrafts`（非 `IConversation` 契约），
+  代码里有存在性守卫与 `shortcut:` 标注，宿主升级需复查。
+- **npm 关键词**：补上 `dsh`、`dsh-plugin`、`deepseek-harness` 等 9 个关键词。此前
+  package.json 没有任何 keywords——npm 搜索 `keywords:dsh-plugin` 的 1.8 万条结果里没有本包，
+  直接搜包名 `dsh-liangheng` 也会被 32991 条结果淹没；`dsh-pet`、`dshmarket`、`dsh-agent-compare`
+  等同类插件都声明了同一组三元组。
+
 ## [0.2.4] - 2026-11-27
 
 ### Fixed

@@ -30,16 +30,16 @@ import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import { LiangShenBurst } from './LiangShenBurst.tsx'
 import { PresetWatcher } from './preset-watcher.ts'
 import { LiangShenSettingsCard, LiangShenSettingsCardController, type LiangShenSettings } from './LiangShenSettingsCard.tsx'
-import { en, zh, type LiangShenKey } from './locales.ts'
+import { en, NS, zh, type LiangShenKey } from './locales.ts'
 import { mainViewSessionId } from './main-session.ts'
 import { MermaidFence } from './MermaidFence.tsx'
 import { CheckListFence } from './CheckListFence.tsx'
 import { installPluginCard } from './plugin-card-seat.ts'
+import { installQueueStrip } from './QueueStrip.tsx'
 import { createServedEntryForm } from './settings-entry-form.ts'
 import './ChatPolish.css'
 
-/** Locale namespace this half owns. */
-export const NS = 'liangheng'
+export { NS }
 
 /**
  * Settings namespace the settings card edits: the family identity of this
@@ -232,6 +232,11 @@ export function apply(ctx: ClientContext): void {
       return () => {}
     }
   })
+
+  // Queued-message strip. The host edits a queued row in place and refuses any
+  // row carrying an image; taking the cell over makes Edit return the message,
+  // attachments included, to the composer.
+  installQueueStrip(ctx)
 
   // Render Mermaid code fences inside chat responses using our lightweight theme-aware SVG renderer.
   ctx.slots.inject('conversation.chat.markdown.fence', () => {

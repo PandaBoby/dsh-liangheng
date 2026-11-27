@@ -20,10 +20,9 @@
 import type { Context as ClientContext } from '@deepseek-ai/cordis';
 import type { ConfigForm, ConfigForms } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { type LiangShenSettings } from './LiangShenSettingsCard.tsx';
-import { type LiangShenKey } from './locales.ts';
+import { NS, type LiangShenKey } from './locales.ts';
 import './ChatPolish.css';
-/** Locale namespace this half owns. */
-export declare const NS = "liangheng";
+export { NS };
 /**
  * Settings namespace the settings card edits: the family identity of this
  * plugin's own settings form, and the row id a standalone bundle install

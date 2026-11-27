@@ -4,6 +4,9 @@
  * into the centralized ru dictionary and `pnpm i18n:check` enforces parity.
  */
 
+/** Locale namespace this half owns. */
+export const NS = 'liangheng'
+
 /** Browser-half copy, key source of truth. */
 export const zh = {
   'lever.name': '梁衡模式',
@@ -44,6 +47,26 @@ export const zh = {
   'diagram.copied': '已复制',
   'diagram.zoom': '放大预览',
   'diagram.close': '关闭预览',
+
+  'queue.count': '{n} 条排队消息',
+  'queue.expand': '展开排队消息',
+  'queue.collapse': '收起排队消息',
+  'queue.edit': '取回编辑',
+  'queue.editUnsupported': '含文件的排队消息暂不能取回编辑，请先删除再重发。',
+  'queue.remove': '删除排队消息',
+  'queue.removeThis': '删除这条',
+  'queue.removeHint': '不进草稿',
+  'queue.more': '更多操作',
+  'queue.steer': '插话发送',
+  'queue.steerUnavailable': '当前没有进行中的回复。',
+  'queue.sending': '发送中',
+  'queue.pullingBack': '取回中',
+  'queue.image': '排队消息图片',
+  'queue.file': '排队文件 {name}',
+  'queue.pullBackFailed': '取回编辑失败，消息仍在队列里。',
+  'queue.pullBackLocked': '输入框正在发送，稍后重试。',
+  'queue.removeFailed': '删除排队消息失败。',
+  'queue.steerFailed': '插话发送失败。',
 }
 
 /** English counterpart; the key set mirrors {@link zh} exactly. */
@@ -86,6 +109,26 @@ export const en: Record<keyof typeof zh, string> = {
   'diagram.copied': 'Copied',
   'diagram.zoom': 'Zoom',
   'diagram.close': 'Close preview',
+
+  'queue.count': '{n} queued message(s)',
+  'queue.expand': 'Show queued messages',
+  'queue.collapse': 'Hide queued messages',
+  'queue.edit': 'Edit in composer',
+  'queue.editUnsupported': 'A queued file cannot go back to the composer yet — remove it and send again.',
+  'queue.remove': 'Remove queued message',
+  'queue.removeThis': 'Delete this message',
+  'queue.removeHint': 'not kept',
+  'queue.more': 'More actions',
+  'queue.steer': 'Steer now',
+  'queue.steerUnavailable': 'No reply is running.',
+  'queue.sending': 'Sending',
+  'queue.pullingBack': 'Pulling back',
+  'queue.image': 'Queued image',
+  'queue.file': 'Queued file {name}',
+  'queue.pullBackFailed': 'Could not pull that message back; it is still queued.',
+  'queue.pullBackLocked': 'The composer is sending — try again in a moment.',
+  'queue.removeFailed': 'Could not remove the queued message.',
+  'queue.steerFailed': 'Could not send that message now.',
 }
 
 /** Every key in the locale catalog. */

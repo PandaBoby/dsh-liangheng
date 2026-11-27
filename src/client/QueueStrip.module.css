@@ -1,0 +1,337 @@
+/* Queued-message strip. Geometry mirrors the host strip (a panel attached under
+   the composer card, 36px rows, quiet action glyphs) so taking the cell over
+   changes behaviour, not the visual rhythm of the composer stack. */
+
+.dock {
+  box-sizing: border-box;
+  flex: none;
+  width: calc(
+    100% -
+    var(--dsh-composer-side-clearance) -
+    var(--dsh-composer-side-clearance) -
+    var(--dsh-composer-dock-inset) -
+    var(--dsh-composer-dock-inset)
+  );
+  max-width: calc(
+    var(--dsh-composer-card-max-width) -
+    var(--dsh-composer-dock-inset) -
+    var(--dsh-composer-dock-inset)
+  );
+  /* Cancel the stack gap after this item and tuck 3px under the input card
+     (square bottom), reading as one attached surface. */
+  margin: 0 auto calc(0px - var(--dsh-composer-stack-gap) - 3px);
+  padding: 0 var(--dsh-composer-dock-inset);
+}
+
+.panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  padding: 2px 0;
+  border-radius: var(--dsw-radius-lg) var(--dsw-radius-lg) 0 0;
+}
+
+.panel::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--dsw-specific-menu);
+  backdrop-filter: var(--dsw-menu-backdrop-filter);
+  content: '';
+  pointer-events: none;
+}
+
+.panel::after {
+  position: absolute;
+  inset: 0;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  /* The input card's own top border closes the shape below. */
+  border-bottom: none;
+  border-radius: inherit;
+  content: '';
+  pointer-events: none;
+}
+
+.header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 4px 12px;
+  border: none;
+  border-radius: var(--dsw-radius-md);
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.header:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: -2px;
+}
+
+.header:disabled {
+  cursor: default;
+}
+
+.lead {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.count {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: Inter, var(--dsw-font-family);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.chevron {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.list {
+  max-height: 180px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 4px 5px 4px 12px;
+  border-radius: var(--dsw-radius-md);
+}
+
+.row + .row {
+  box-shadow: inset 0 1px 0 var(--dsw-alias-border-l1);
+}
+
+/* The row itself is the primary "take it back" target; buttons inside stop the
+   bubbling, so clicking ⋯ or 插话 never doubles as a pull-back. */
+.row[data-interactive] {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .row[data-interactive]:hover {
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
+}
+
+.attachments {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  min-width: 0;
+  max-width: 55%;
+  overflow: hidden;
+}
+
+.pendingRow .attachments {
+  flex-shrink: 1;
+}
+
+.file {
+  display: inline-flex;
+  flex: 0 1 180px;
+  align-items: center;
+  gap: 4px;
+  min-width: 74px;
+  height: 24px;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-sm);
+  background: var(--dsw-alias-bg-base);
+  box-sizing: border-box;
+}
+
+.fileName {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary-dimmed);
+  font: var(--dsw-font-xs-13);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thumb {
+  width: 24px;
+  height: 24px;
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsw-radius-xs);
+  background: var(--dsw-alias-bg-base);
+  object-fit: cover;
+}
+
+/* A thumbnail whose URL has not resolved yet keeps the row's height stable. */
+.thumb[data-pending] {
+  display: inline-block;
+}
+
+.preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font: var(--dsw-font-xs-13);
+  font-family: Inter, var(--dsw-font-family);
+  color: var(--dsw-alias-label-primary-dimmed);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.status {
+  flex: none;
+  color: var(--dsw-alias-label-tertiary);
+  font: var(--dsw-font-xs-13);
+  white-space: nowrap;
+}
+
+.action {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .action:hover:not(:disabled) {
+    background: var(--dsw-alias-interactive-bg-hover);
+  }
+}
+
+.action:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: -2px;
+}
+
+.action:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* The named action stays legible while idle: icon-only Edit made users guess. */
+.primary {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 26px;
+  padding: 0 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary, var(--dsw-alias-label-primary-dimmed));
+  font-family: Inter, var(--dsw-font-family);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .primary:hover:not(:disabled) {
+    background: var(--dsw-alias-interactive-bg-hover);
+    color: var(--dsw-alias-label-primary);
+  }
+}
+
+.primary:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary));
+  outline-offset: -2px;
+}
+
+.primary:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* Portalled to the body: the strip clips its own overflow, so a nested menu
+   would be cut off by the list scrollport. */
+.menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 184px;
+  padding: 5px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 10px;
+  background: var(--dsw-specific-menu, var(--dsw-alias-bg-layer-1));
+  backdrop-filter: var(--dsw-menu-backdrop-filter);
+  box-shadow: 0 12px 30px -16px rgb(15 23 42 / 42%);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary, #e5484d);
+  font-family: Inter, var(--dsw-font-family);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: color-mix(in srgb, #e5484d 9%, transparent);
+}
+
+.menuItem:focus-visible {
+  outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-error-primary, #e5484d));
+  outline-offset: -2px;
+}
+
+.menuLabel {
+  flex: 1 1 auto;
+}
+
+.menuHint {
+  flex: none;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+}
+
+.error {
+  margin: 0;
+  padding: 2px 12px 6px;
+  color: var(--dsw-alias-state-error-primary, #e5484d);
+  font: var(--dsw-font-xs-13);
+}

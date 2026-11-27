@@ -3,6 +3,8 @@
  * side is the key-set source of truth; `packages/dsh-i18n` mirrors the keys
  * into the centralized ru dictionary and `pnpm i18n:check` enforces parity.
  */
+/** Locale namespace this half owns. */
+export declare const NS = "liangheng";
 /** Browser-half copy, key source of truth. */
 export declare const zh: {
     'lever.name': string;
@@ -43,6 +45,25 @@ export declare const zh: {
     'diagram.copied': string;
     'diagram.zoom': string;
     'diagram.close': string;
+    'queue.count': string;
+    'queue.expand': string;
+    'queue.collapse': string;
+    'queue.edit': string;
+    'queue.editUnsupported': string;
+    'queue.remove': string;
+    'queue.removeThis': string;
+    'queue.removeHint': string;
+    'queue.more': string;
+    'queue.steer': string;
+    'queue.steerUnavailable': string;
+    'queue.sending': string;
+    'queue.pullingBack': string;
+    'queue.image': string;
+    'queue.file': string;
+    'queue.pullBackFailed': string;
+    'queue.pullBackLocked': string;
+    'queue.removeFailed': string;
+    'queue.steerFailed': string;
 };
 /** English counterpart; the key set mirrors {@link zh} exactly. */
 export declare const en: Record<keyof typeof zh, string>;
