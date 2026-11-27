@@ -19,9 +19,9 @@
 .control {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   margin: 0;
-  padding: 2px 8px 2px 4px;
+  /* Icon-only: the switch has no readout, so the padding is symmetric. */
+  padding: 2px 5px;
   border: none;
   border-radius: 999px;
   background: transparent;
@@ -123,17 +123,6 @@
 }
 
 /* Width-stable label: the composer row must not shift when the mode changes. */
-.readout {
-  min-width: 4.4em;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
-}
-
-.lever[data-state='on'] .readout {
-  color: var(--dsw-alias-label-primary, inherit);
-  font-weight: 600;
-}
-
 /*
  * Inline error, kept in flow so it never floats over the composer: the full
  * host reason stays available through the title attribute when it is elided.

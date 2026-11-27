@@ -29,20 +29,6 @@ const STANDARD = 'FIRST-PRINCIPLES · HONEST · FAST'
 /** One spark per spoke of the burst. */
 const SPARKS = Array.from({ length: 14 }, (_, index) => index)
 
-/** Sync the hero preset chip above the composer so both controls always agree. */
-function syncHeroChip(label: string): void {
-  try {
-    if (typeof document === 'undefined') return
-    const chip = document.querySelector<HTMLElement>('button[aria-haspopup="menu"] span[class*="seatLabel"]')
-      ?? Array.from(document.querySelectorAll<HTMLElement>('button[aria-haspopup="menu"] span')).find(s => s.className.includes('seatLabel'))
-    if (chip && chip.textContent !== label) {
-      chip.textContent = label
-    }
-  } catch {
-    // Non-browser or detached element
-  }
-}
-
 /** Slot entry for `conversation.input.right` (left of the model selector). */
 export function LiangShenLever(face: LeverFace): ReactElement | null {
   const snapshot = useSyncExternalStore(face.store.subscribe, face.store.getSnapshot)
@@ -74,17 +60,6 @@ export function LiangShenLever(face: LeverFace): ReactElement | null {
     const timer = setTimeout(() => { setBurstKey(0) }, BURST_MS)
     return () => { clearTimeout(timer) }
   }, [burstKey])
-
-  // Keep the hero preset chip above the composer in sync with the lever's selection
-  const prevState = useRef(state)
-  useEffect(() => {
-    if (state === 'on') {
-      syncHeroChip(face.t('lever.name'))
-    } else if (prevState.current === 'on' && state === 'off' && restoreLabel !== '') {
-      syncHeroChip(restoreLabel)
-    }
-    prevState.current = state
-  }, [state, restoreLabel, face])
 
   // The lever exists only while the preset can still change, which is the
   // blank-session window: a started session reports `locked`, a deployment
@@ -162,7 +137,6 @@ export function LiangShenLever(face: LeverFace): ReactElement | null {
             <circle className={css.knob} cx="8" cy="4" r="3.4" />
           </svg>
         </span>
-        <span className={css.readout}>{busy ? face.t('lever.busy') : on ? face.t('lever.state.on') : face.t('lever.state.off')}</span>
       </button>
       {errorText !== undefined && (
         <span className={css.error} role="status" title={errorText}>{errorText}</span>
