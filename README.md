@@ -45,7 +45,7 @@
 
 围绕「**理解意图 → 最优方案 → 极速执行 → 严谨诚实**」，`dsh-liangheng` 在系统提示词、工具线协议、上下文裁剪与运行时守卫四层做了定向强化：
 
-1. **高信噪比编码 Persona（默认 `dispatcher: false`）**：默认移除约 24.6 KB 的重型纯调度员规则，采用「单兵直写优先 + 机会式并行子代理」策略；内置意图闸门（默认直接执行，仅在高影响架构/破坏性分叉时单次 `ask_user_question` 收敛）、未钉死边界的**防御性别名兼容**、第一性原理根因分析、严格 YAGNI、2 轮假设熔断、强制中文思考/回复规范，以及**清爽文档级输出排版准则**（`> **结论**` 与过程侧 `> **分析**` 的双层导语卡、≥4 列防折行宽表、最小消歧文件链接、图文/Mermaid 混排与底部核验收束）。
+1. **高信噪比编码 Persona（默认 `dispatcher: false`）**：默认移除约 24.6 KB 的重型纯调度员规则，采用「单兵直写优先 + 机会式并行子代理」策略；内置意图闸门（默认直接执行，仅在高影响架构/破坏性分叉时单次 `ask_user_question` 收敛）、未钉死边界的**防御性别名兼容**、第一性原理根因分析、严格 YAGNI、2 轮假设熔断、强制中文思考/回复规范、**交互式命令自驱**（登录、2FA、浏览器授权自己开持久 TTY 走 CLI 的 web 认证，环境里有 computer-use 时自己点那句授权，不找用户要验证码），以及**清爽文档级输出排版准则**（`> **结论**` 与过程侧 `> **分析**` 的双层导语卡、≥4 列防折行宽表、最小消歧文件链接、图文/Mermaid 混排与底部核验收束）。
 2. **默认原生并发工具面（`presentation: 'native'`）与多媒体交付**：移除冗余 `str_replace_editor`，开启 `apply_patch`、`web_fetch` 与 `present`（独立产物预览卡），放行宿主 `context:file-reference` / `ui:deliverable-file-references` 指令以启用本地图片内联（`![说明](<path>)`）、悬停缩略图预览与点击跳转，并在客户端通过 `conversation.chat.markdown.fence` 内置轻量主题自适应 **Mermaid SVG 渲染器**（支持流程图/时序图/状态图与 `图表/源码` 切换、点击放大）及 `liangheng` 会话专属 Markdown 排版美化（设置页可随时切回 `ptc`）。
 3. **温和 LRU 分页与事实锚点**：`mcp__*`、`browser_*`、`task_board_*`、`team_*`、`squad*`、`ui_*`、`ssh_*` 七类高扇出工具族默认扣留，由 `tool_activate` 按需加载（LRU 上限 3，事件流可重放）；`fact_register` 与单行 `[Working Context: ...]` 跨越长会话与上下文压缩固定硬约束。
 4. **DSH `0.2.2-rc.5` 运行时边界修复**：修复 `subagent-routes` Schema 参数与实时模型读取、`dispatch-guard` 恢复子会话归属与 `subagent/start`/`end` 状态追踪、`tool-catalog` 失败预同步与压缩回收对齐、`fact-ledger` / `working-context` 过滤失败 `native` 调用，以及 `minimal-prompt` 跟踪 `working_directory` 与 `apply_patch` 涉及目录。

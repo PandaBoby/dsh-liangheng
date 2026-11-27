@@ -147,6 +147,17 @@ describe('readCompositionRows', () => {
     expect(prefix).not.toContain('Lead with a conclusion callout')
   })
 
+  it('operator reads the interactive-command rule beside shell discipline', () => {
+    // Given the persona row shipped with this preset, When a step needs a human
+    // authorization, Then the session drives it through a persistent TTY (and
+    // computer-use when the host exposes one) instead of asking the user to
+    // paste a one-time code back into the chat.
+    const prefix = configOf(rowOf(rows(), 'persona'))['prefix'] as string
+    expect(prefix).toContain('Drive interactive commands yourself')
+    expect(prefix).toContain('never a one-time code for the user to paste back')
+    expect(prefix).toContain('click that consent yourself')
+  })
+
   it('operator keeps a loader expression as data instead of executing it', () => {
     // Given the platform-conditional shell rows, When the operator reads them,
     // Then each `!!js` expression arrives as data for the Loader to evaluate.

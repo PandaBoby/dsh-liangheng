@@ -3,6 +3,17 @@
 本文件格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循
 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- **交互式命令自驱（Persona 第 3 节）**：登录、2FA、浏览器授权这类步骤不再让用户把一次性验证码
+  贴回对话。会话自己开持久 TTY（`terminal_open`），让 CLI 走它自己的 web 认证——`npm publish`、
+  `gh auth login`、各家云 CLI 都会在那里打印授权链接，并在浏览器同意后自行继续；环境里若有
+  computer-use 或浏览器自动化（`act_on_build_computer`、`agent-browser`、Playwright），由会话
+  自己点那句授权。只有真正必须人工接手的那一步才留一句指针给用户，前后的活仍是会话自己的。
+  `src/composition.test.ts` 增加对应断言（150 tests）。
+
 ## [0.2.2] - 2026-11-27
 
 ### Added
