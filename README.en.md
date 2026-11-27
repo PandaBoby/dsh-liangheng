@@ -123,21 +123,28 @@ Resident tools cover platform shell (`bash`/`pwsh`), filesystem (`read`, `read_i
 
 ## Quick Start
 
-From npm:
+From npm (recommended):
 
 ```sh
 dsh plugin --profile web add dsh-liangheng
 ```
 
-From source (`lib/` is committed; rebuild after changing source):
+Replace `web` with the profile you actually use — the desktop client is `desktop`.
+
+From source: get the checkout from <https://github.com/PandaBoby/dsh-liangheng> (private repository, access required), then run this from its root:
 
 ```sh
 npm install
-npm run build      # tsc -b tsconfig.build.json && tsdown && node scripts/inline-css.mjs
-dsh plugin --profile web add link:$PWD
+npm run build      # rebuild lib/ and inline the stylesheet into client.js
+dsh plugin --profile web add link:"$PWD"
 ```
 
-Restart `dsh web`, open a **new empty session**, and toggle **LiangHeng mode** from the composer lever or preset picker.
+Two things that bite:
+
+- `link:` records an absolute path on this machine, so run it from the repository root; move or delete the checkout and the profile entry goes stale — re-`add` it.
+- After editing source, `npm run build` is not enough: **commit `lib/` too**. CI rebuilds and diffs `lib/` file by file, and fails on any difference.
+
+Restart `dsh web` or the desktop client, open a **new empty session**, and toggle **LiangHeng mode** from the composer lever or preset picker.
 
 ---
 

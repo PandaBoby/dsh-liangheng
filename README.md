@@ -161,21 +161,28 @@ flowchart TB
 
 ### 安装与启用
 
-从 npm 安装：
+从 npm 安装（推荐）：
 
 ```sh
 dsh plugin --profile web add dsh-liangheng
 ```
 
-从源码开发（仓库已提交 `lib/`，改源码后需重新构建）：
+`web` 换成你实际使用的 profile 名——桌面客户端是 `desktop`。
+
+从源码开发：先从 <https://github.com/PandaBoby/dsh-liangheng> 取得源码（私有仓库，需访问权限），再在仓库根目录执行：
 
 ```sh
 npm install
-npm run build      # tsc -b tsconfig.build.json && tsdown && node scripts/inline-css.mjs
-dsh plugin --profile web add link:$PWD
+npm run build      # 重建 lib/ 并把样式表内联进 client.js
+dsh plugin --profile web add link:"$PWD"
 ```
 
-重启 `dsh web` / DeepSeek Harness，打开一个**全新的空会话**，通过输入框左侧拨杆或预设选择器切换至「梁衡模式」（会话产生消息后锁定预设，不可中途切换）。
+两点容易踩：
+
+- `link:` 记的是本机绝对路径，所以必须先 `cd` 进仓库根目录再执行；仓库挪了位置或删了，profile 里那条链接就失效，需要重新 `add`。
+- 改完源码后不仅要 `npm run build`，**还要把 `lib/` 一起提交**：CI 会重新构建并与仓库里的 `lib/` 逐文件比对，不一致即失败。
+
+重启 `dsh web` 或桌面客户端，打开一个**全新的空会话**，通过输入框左侧拨杆或预设选择器切换至「梁衡模式」（会话产生消息后锁定预设，不可中途切换）。
 
 ---
 
