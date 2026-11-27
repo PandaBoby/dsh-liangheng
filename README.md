@@ -8,6 +8,7 @@
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License" /></a>
+  <a href="https://www.npmjs.com/package/dsh-liangheng"><img src="https://img.shields.io/npm/v/dsh-liangheng?style=flat-square&amp;logo=npm&amp;color=cb3837" alt="npm" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D24.9.0-339933?style=flat-square&amp;logo=node.js&amp;logoColor=white" alt="Node" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.3-4c6ef5?style=flat-square" alt="DSH" /></a>
   <img src="https://img.shields.io/badge/preset-liangheng-2b8a3e?style=flat-square" alt="Preset" />
@@ -25,7 +26,7 @@
   <a href="#验证与开发">开发</a>
 </p>
 
-<p><code>dsh plugin --profile web add link:$PWD</code></p>
+<p><code>dsh plugin --profile web add dsh-liangheng</code></p>
 
 </div>
 
@@ -160,12 +161,17 @@ flowchart TB
 
 ### 安装与启用
 
+从 npm 安装：
+
 ```sh
-# 1. 安装依赖并构建（仓库已提交 lib/，修改源码后需重新构建）
+dsh plugin --profile web add dsh-liangheng
+```
+
+从源码开发（仓库已提交 `lib/`，改源码后需重新构建）：
+
+```sh
 npm install
 npm run build      # tsc -b tsconfig.build.json && tsdown && node scripts/inline-css.mjs
-
-# 2. 链接到目标 profile（如 web 或 desktop）
 dsh plugin --profile web add link:$PWD
 ```
 

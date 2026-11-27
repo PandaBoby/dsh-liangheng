@@ -5,6 +5,9 @@
 
 ## [0.2.0] - 2026-11-26
 
+首次发布到 npm：`dsh-liangheng@0.2.0`。新包首发经过 npm staged 审核，审核期间的占位版本
+`0.0.0-stage` 已由正式版本取代，`latest` 指向 `0.2.0`。
+
 ### Added
 
 - 独立的 **梁衡模式 (`liangheng`)** 品牌与命名空间（包名 `dsh-liangheng`、preset ID `liangheng`、`order: 5`、独立的设置与语言命名空间、客户端 `liangheng-lever` 槽位与遥测文案），可与 `@linxin666/dsh-liangshen` 并存而不冲突。
