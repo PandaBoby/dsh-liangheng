@@ -124,24 +124,31 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] table {
   font-variant-numeric: tabular-nums;
 }
 
+/* Three lines, one wash: the header rules top and bottom, the body carries a
+   hairline per row, and the last row closes the table. The host ships no top or
+   bottom rule, so a table there reads as a stack of floating lines. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] thead th {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
+  border-top: 0.5px solid var(--dsw-alias-border-l3);
+  border-bottom: 0.5px solid var(--dsw-alias-border-l3);
   white-space: nowrap;
   color: var(--dsw-alias-label-secondary);
+  font-weight: 600;
 }
 
-/* Zebra rows keep a wide four-column table hittable across its width. */
-html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 3%, transparent);
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:last-child td {
+  border-bottom: 0.5px solid var(--dsw-alias-border-l3);
 }
 
-/* Declared after the zebra rule so hover still wins on an even row. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:hover {
   background: var(--dsw-alias-interactive-bg-hover, rgba(127, 127, 127, 0.04));
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(th, td) {
   vertical-align: top;
+  /* The host caps a cell at min(30vw, 320px), which wraps a Chinese sentence in
+     a three-column table after six or seven characters. */
+  max-width: min(34vw, 420px);
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] td {
@@ -171,11 +178,7 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr {
    dark, so the image edge is re-stated with the thin dark border token. */
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] thead th {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
-}
-
-html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] tbody tr:nth-child(even) {
-  background: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 12%, transparent);
 }
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] [data-code-block-banner] {
