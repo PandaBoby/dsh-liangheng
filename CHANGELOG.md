@@ -5,6 +5,15 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **验证账本的长键不再被省略号吃掉**：[CheckListFence.module.css](src/client/CheckListFence.module.css)
+  的键列原本固定 84px，解析器允许的 24 字符键（例如 `git log origin/dev..HEAD`）被压成
+  `GIT LOG ORI…`，键本身成了不可读信息。现在卡片改用 subgrid 承载列轨道：键列以 84px 为
+  下限、按这张卡里最宽的键撑开，同一张卡内所有行的分隔竖线仍停在同一个 x 上；只有短键的卡
+  维持原来的 84px 基线。不支持 subgrid 的引擎回落到固定列 + 省略号。核验样张：
+  `.probe/check-long-key.png`（900px 与 420px 两种宽度）。
+
 ## [0.2.3] - 2026-11-27
 
 ### Added

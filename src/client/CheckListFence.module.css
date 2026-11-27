@@ -33,9 +33,9 @@
 
 .row {
   display: grid;
-  /* The key column is fixed so consecutive ledgers and rows align vertically;
-     a value-only row leaves it empty rather than shifting the column. 84px is
-     the widest shipped key (`typecheck`) plus its tracking. */
+  /* Fallback for engines without subgrid: a fixed key column keeps rows
+     aligned. 84px is the widest common key (`typecheck`) plus its tracking, and
+     a value-only row leaves the column empty rather than shifting it. */
   grid-template-columns: 18px 84px minmax(0, 1fr);
   align-items: center;
   min-height: 30px;
@@ -88,6 +88,9 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--dsw-alias-label-secondary);
+  /* Breathing room between the widest key and the column rule; max-content
+     counts this padding, so the gap survives when subgrid widens the column. */
+  padding-right: 8px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -106,4 +109,26 @@
   border-left: 1px solid color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent);
   padding-left: 28px;
   overflow-wrap: anywhere;
+}
+
+/* Subgrid widens the key column to the longest key in the card: a short key
+   still sits on the 84px baseline, a long one (`git log origin/dev..HEAD`,
+   up to the parser's 24 characters) pushes the column out for every row
+   instead of being cut to `GIT LOG ORI…`. Alignment inside one card survives
+   because the tracks come from the card, not from each row. */
+@supports (grid-template-columns: subgrid) {
+  .card {
+    display: grid;
+    grid-template-columns: 18px minmax(84px, max-content) minmax(0, 1fr);
+  }
+
+  .row {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+
+  .key {
+    overflow: visible;
+    text-overflow: clip;
+  }
 }
