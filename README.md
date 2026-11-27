@@ -15,6 +15,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.3-4c6ef5?style=flat-square" alt="DSH" /></a>
   <img src="https://img.shields.io/badge/preset-liangheng-2b8a3e?style=flat-square" alt="Preset" />
   <img src="https://img.shields.io/badge/tests-122%20passed-2b8a3e?style=flat-square" alt="Tests" />
+  <a href="https://wenming7.cn/"><img src="https://img.shields.io/badge/sponsor-%E7%A8%B3%E6%98%8E%E5%85%89%E8%AF%AD%E7%BA%AA-ff69b4?style=flat-square&amp;logo=heart&amp;logoColor=white" alt="Sponsor: 稳明光语纪" /></a>
 </p>
 
 <p>
