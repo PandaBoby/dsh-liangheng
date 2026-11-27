@@ -1,7 +1,7 @@
 {
   "name": "dsh-liangheng",
   "description": "LiangHeng (梁衡模式) — a focused coding agent preset for the dsh web GUI, with a landing burst when the preset is picked. Ships with native wire presentation and high-signal solo-first coding discipline by default (with optional ptc and dispatcher toggles), gentle LRU tool paging via tool_activate, working-context & fact_register anchors, and DSH 0.2.2 route/dispatch guards. Hot-pluggable via cordis.patch.yml + profile link, no dsh source changes.",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "icon": "icon.svg",
   "keywords": [
     "dsh",
