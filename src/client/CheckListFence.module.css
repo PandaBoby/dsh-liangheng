@@ -34,9 +34,11 @@
 .row {
   display: grid;
   /* Fallback for engines without subgrid: a fixed key column keeps rows
-     aligned. 84px is the widest common key (`typecheck`) plus its tracking, and
-     a value-only row leaves the column empty rather than shifting it. */
-  grid-template-columns: 18px 84px minmax(0, 1fr);
+     aligned. The 26px tick column is the 12px glyph plus the 7px it needs on
+     each side — at 18px a ✓ sat flush against the key it marks. 84px is the
+     widest common key (`typecheck`) plus its tracking, and a value-only row
+     leaves the column empty rather than shifting it. */
+  grid-template-columns: 26px 84px minmax(0, 1fr);
   align-items: center;
   min-height: 30px;
   padding: 0 12px 0 10px;
@@ -119,7 +121,7 @@
 @supports (grid-template-columns: subgrid) {
   .card {
     display: grid;
-    grid-template-columns: 18px minmax(84px, max-content) minmax(0, 1fr);
+    grid-template-columns: 26px minmax(84px, max-content) minmax(0, 1fr);
   }
 
   .row {
