@@ -14,7 +14,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D24.9.0-339933?style=flat-square&amp;logo=node.js&amp;logoColor=white" alt="Node" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.3-4c6ef5?style=flat-square" alt="DSH" /></a>
   <img src="https://img.shields.io/badge/preset-liangheng-2b8a3e?style=flat-square" alt="Preset" />
-  <img src="https://img.shields.io/badge/tests-122%20passed-2b8a3e?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-126%20passed-2b8a3e?style=flat-square" alt="Tests" />
   <a href="https://wenming7.cn/"><img src="https://img.shields.io/badge/sponsor-%E7%A8%B3%E6%98%8E%E5%85%89%E8%AF%AD%E7%BA%AA-ff69b4?style=flat-square&amp;logo=heart&amp;logoColor=white" alt="Sponsor: 稳明光语纪" /></a>
 </p>
 
@@ -45,8 +45,8 @@
 
 围绕「**理解意图 → 最优方案 → 极速执行 → 严谨诚实**」，`dsh-liangheng` 在系统提示词、工具线协议、上下文裁剪与运行时守卫四层做了定向强化：
 
-1. **高信噪比编码 Persona（默认 `dispatcher: false`）**：默认移除约 24.6 KB 的重型纯调度员规则，采用「单兵直写优先 + 机会式并行子代理」策略；内置意图闸门（默认直接执行，仅在高影响架构/破坏性分叉时单次 `ask_user_question` 收敛）、未钉死边界的**防御性别名兼容**、第一性原理根因分析、严格 YAGNI、2 轮假设熔断与强制中文思考/回复规范。
-2. **默认原生并发工具面（`presentation: 'native'`）**：移除冗余 `str_replace_editor`，开启 `apply_patch` 与 `web_fetch`，保留完整原生并发工具调用与流式 diff 卡片（设置页可随时切回 `ptc` 编程调度面）。
+1. **高信噪比编码 Persona（默认 `dispatcher: false`）**：默认移除约 24.6 KB 的重型纯调度员规则，采用「单兵直写优先 + 机会式并行子代理」策略；内置意图闸门（默认直接执行，仅在高影响架构/破坏性分叉时单次 `ask_user_question` 收敛）、未钉死边界的**防御性别名兼容**、第一性原理根因分析、严格 YAGNI、2 轮假设熔断、强制中文思考/回复规范，以及**清爽文档级输出排版准则**（`> **结论**` 导语卡、≥4 列防折行宽表、最小消歧文件链接、图文/Mermaid 混排与底部核验收束）。
+2. **默认原生并发工具面（`presentation: 'native'`）与多媒体交付**：移除冗余 `str_replace_editor`，开启 `apply_patch`、`web_fetch` 与 `present`（独立产物预览卡），放行宿主 `context:file-reference` / `ui:deliverable-file-references` 指令以启用本地图片内联（`![说明](<path>)`）、悬停缩略图预览与点击跳转，并在客户端通过 `conversation.chat.markdown.fence` 内置轻量主题自适应 **Mermaid SVG 渲染器**（支持流程图/时序图/状态图与 `图表/源码` 切换、点击放大）及 `liangheng` 会话专属 Markdown 排版美化（设置页可随时切回 `ptc`）。
 3. **温和 LRU 分页与事实锚点**：`mcp__*`、`browser_*`、`task_board_*`、`team_*`、`squad*`、`ui_*`、`ssh_*` 七类高扇出工具族默认扣留，由 `tool_activate` 按需加载（LRU 上限 3，事件流可重放）；`fact_register` 与单行 `[Working Context: ...]` 跨越长会话与上下文压缩固定硬约束。
 4. **DSH `0.2.2-rc.5` 运行时边界修复**：修复 `subagent-routes` Schema 参数与实时模型读取、`dispatch-guard` 恢复子会话归属与 `subagent/start`/`end` 状态追踪、`tool-catalog` 失败预同步与压缩回收对齐、`fact-ledger` / `working-context` 过滤失败 `native` 调用，以及 `minimal-prompt` 跟踪 `working_directory` 与 `apply_patch` 涉及目录。
 
@@ -89,14 +89,15 @@
 
 本仓库的品质由**双层验证体系**保障：
 
-### 1. 仓库自动化单元与契约测试（12 个测试文件 / 122 项用例全绿）
+### 1. 仓库自动化单元与契约测试（13 个测试文件 / 126 项用例全绿）
 
 | 模块层 | 测试文件 | 覆盖范围与关键不变量 |
 | :--- | :--- | :--- |
 | 宿主 & UI 拨杆 | [src/index.test.ts](src/index.test.ts)、[src/announce.test.ts](src/announce.test.ts)、[src/core/lever.test.ts](src/core/lever.test.ts) | `DSH_HOME` 解析、预设声明与本地化元数据、拨杆状态读写、兼容性别名与幂等挂载（34 项） |
-| 严格配置组合 | [src/composition.test.ts](src/composition.test.ts) | 无依赖 YAML 严格子集解析、相对路径 URL 化、`pagedToolPatterns` / `idleReclaimSteps` 三行同源约束、`presentation`↔`tool-executor-ptc` 一致性（29 项） |
+| 严格配置组合 | [src/composition.test.ts](src/composition.test.ts) | 无依赖 YAML 严格子集解析、相对路径 URL 化、`pagedToolPatterns` / `idleReclaimSteps` 三行同源约束、`present` 挂载与 `native`↔`ptc` 一致性（29 项） |
+| 客户端 Mermaid 渲染 | [src/client/mermaid-lite.test.ts](src/client/mermaid-lite.test.ts) | 流程图（含子图、中文、引号与 XML 转义）、时序图（消息/自调用/Note/alt）、状态图 SVG 渲染及非支持图种静默回退（4 项） |
 | 分页状态机 | [presets/liangheng/paging.test.mjs](presets/liangheng/paging.test.mjs) | 命名空间提取、LRU=3 驱逐、事件流重放、`tool/ptc-dispatch` 与 `idleReclaimSteps` 延迟回收（30 项） |
-| 预设运行时插件 | `presets/liangheng/{subagent-routes,dispatch-guard,fact-ledger,working-context,tool-activate,tool-catalog,minimal-prompt}.test.mjs` | JSON Schema 路由探测、`subagent/start`/`end` 守卫、失败 `native` 调用过滤、预同步防竞态、`apply_patch` 路径与实时 `workingDirectory` 追踪（29 项） |
+| 预设运行时插件 | `presets/liangheng/{subagent-routes,dispatch-guard,fact-ledger,working-context,tool-activate,tool-catalog,minimal-prompt}.test.mjs` | JSON Schema 路由探测、`subagent/start`/`end` 守卫、失败 `native` 调用过滤、预同步防竞态、`file-reference` 放行、`present` 策展与实时 `workingDirectory` 追踪（29 项） |
 
 ### 2. CLI 全流程编程实战覆盖面（6 大工程环节）
 
@@ -146,12 +147,12 @@ flowchart TB
 |---|---|---|
 | Shell | `bash`（POSIX）/ `pwsh`（win32），每平台仅一个 | 常驻 |
 | 文件 | `read` / `read_image` / `write` / `edit` / `apply_patch` / `glob` / `grep` | 常驻 |
-| 编排与锚点 | `todo_write`、`ask_user_question`、`skill`、`plan`、`goal`、`fact_register`、`tool_activate` | 常驻 |
+| 编排与锚点 | `todo_write`、`ask_user_question`、`skill`、`plan`、`goal`、`fact_register`、`tool_activate`、`present` | 常驻 |
 | 委派 | `subagent`（支持路由参数）、`subagent_fork`、`send_message`、`list_agents`、`wait_agent`（默认禁用 `interrupt_agent`）、`ralph`（≤ 64 轮） | 常驻 |
 | 网络 | `web_search` 与 `web_fetch`（均开启） | 常驻 |
 | 高扇出族 | `mcp__*`、`browser_*`、`task_board_*`、`team_*`、`squad*`、`ui_*`、`ssh_*` | 分页（LRU=3） |
 
-与内置预设的主要裁剪差异：不挂载 `time-context`、`tool-schedule`、`present`、`tool-office` 与 `str_replace_editor`；`tool-result-pruner` 与 `0.2.2-rc.5` 对齐为 **8192 / 4096 / 1024** 字符。
+与内置预设的主要裁剪差异：不挂载 `time-context`、`tool-schedule`、`tool-office` 与 `str_replace_editor`；保留 `present`（独立产物交付卡）并放行宿主 `context:file-reference` / `ui:deliverable-file-references` 指令；`tool-result-pruner` 与 `0.2.2-rc.5` 对齐为 **8192 / 4096 / 1024** 字符。
 
 ---
 
@@ -207,6 +208,7 @@ dsh plugin --profile web add link:"$PWD"
 | `descriptionMaxLength` | `tool-catalog` | `200` | 未策展工具摘要长度上限 |
 | `instructionSource` | `minimal-prompt` | `host` | `AGENTS.md` 送达方式：`host` / `system-prompt` / `hint` |
 | `keepPlanPolicy` | `minimal-prompt` | `true` | 保留 `plan:policy`（同时放行 `team:policy`） |
+| `keepFileReferenceSections` | `minimal-prompt` | `true` | 放行 `@file` 与图片/行号链接及 `present` 指导段 |
 
 ---
 
@@ -216,7 +218,7 @@ dsh plugin --profile web add link:"$PWD"
 npm install
 npm run build                          # 编译声明、打包并内联客户端 CSS 到 lib/client.js
 npm run typecheck                      # tsc --noEmit -p tsconfig.json
-npm test                               # vitest run（12 个测试文件、122 项用例）
+npm test                               # vitest run（13 个测试文件、126 项用例）
 node tools/check-dispatcher-rules.mjs  # 校验调度器规则片段完整性
 ```
 

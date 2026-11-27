@@ -50,6 +50,12 @@ export const zh = {
   'settings.invalidValue': '填一个可用的值。',
   'presentation.ptc': 'ptc',
   'presentation.native': 'native',
+  'diagram.graph': '图表',
+  'diagram.code': '源码',
+  'diagram.copy': '复制',
+  'diagram.copied': '已复制',
+  'diagram.zoom': '放大预览',
+  'diagram.close': '关闭预览',
 }
 
 /** English counterpart; the key set mirrors {@link zh} exactly. */
@@ -98,6 +104,12 @@ export const en: Record<keyof typeof zh, string> = {
   'settings.invalidValue': 'Enter a value this field accepts.',
   'presentation.ptc': 'ptc',
   'presentation.native': 'native',
+  'diagram.graph': 'Diagram',
+  'diagram.code': 'Source',
+  'diagram.copy': 'Copy',
+  'diagram.copied': 'Copied',
+  'diagram.zoom': 'Zoom',
+  'diagram.close': 'Close preview',
 }
 
 /** Every key in the locale catalog. */

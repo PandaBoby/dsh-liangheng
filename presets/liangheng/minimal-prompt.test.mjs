@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FILE_REFERENCE_SECTION_NAMES,
   PLAN_POLICY_SECTION_NAME,
   TEAM_POLICY_SECTION_NAME,
   apply as applyMinimalPrompt,
@@ -64,6 +65,8 @@ describe('resolveSessionCwd & minimal-prompt assembly', () => {
           { name: 'deployment:persona-prefix', text: 'Persona base.' },
           { name: PLAN_POLICY_SECTION_NAME, text: 'Plan rules.' },
           { name: TEAM_POLICY_SECTION_NAME, text: 'Team rules.' },
+          { name: FILE_REFERENCE_SECTION_NAMES[0], text: '@file syntax.' },
+          { name: FILE_REFERENCE_SECTION_NAMES[1], text: 'Image & file link rules.' },
           { name: 'tools:sdk', text: 'SDK' },
           { name: 'tools:ptc-only', text: 'PTC' },
           { name: 'tool-guidance', text: 'Extra noise' },
@@ -75,6 +78,7 @@ describe('resolveSessionCwd & minimal-prompt assembly', () => {
       'deployment:persona-prefix',
       PLAN_POLICY_SECTION_NAME,
       TEAM_POLICY_SECTION_NAME,
+      ...FILE_REFERENCE_SECTION_NAMES,
     ])
     expect(assembled.sections[0].text).toBe('Persona base.\n\nYour working directory is /repo/app.')
     expect(assembled.sections[0].text).not.toContain('Dispatcher rules')

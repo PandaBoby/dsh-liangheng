@@ -122,6 +122,14 @@ export const PLAN_POLICY_SECTION_NAME = 'plan:policy'
 export const TEAM_POLICY_SECTION_NAME = 'team:policy'
 
 /**
+ * File-reference & deliverable-presentation sections owned by the host UI
+ * (`@deepseek-ai/dsh-file-reference-local` & `@deepseek-ai/dsh-deliverable-file-references`).
+ * Retaining these teaches `@file` references, `<path/to/image.png>` inline/hover
+ * image syntax, `#L24-L30` clickable line targets, and `present` card usage.
+ */
+export const FILE_REFERENCE_SECTION_NAMES = ['context:file-reference', 'ui:deliverable-file-references']
+
+/**
  * Programmatic tool calling (PTC) prompt section names owned by `@deepseek-ai/dsh-tools`.
  * Retaining these ensures model-written `run_code` programs have the complete
  * official SDK definitions, output types, and parameter documentation.
@@ -812,6 +820,7 @@ export function withWorkspaceLine(sections, agent, dispatcher = false, cwdOverri
 /** Register the section filter, workspace-instruction source, and dynamic discovery hooks. */
 export function apply(ctx, config) {
   const keepPlanPolicy = optionalBoolean(config?.keepPlanPolicy, 'keepPlanPolicy', true)
+  const keepFileReferenceSections = optionalBoolean(config?.keepFileReferenceSections, 'keepFileReferenceSections', true)
   const keepSections = optionalKeepSections(config?.keepSections)
   const dispatcher = optionalBoolean(config?.dispatcher, 'dispatcher', false)
   const instructionSource = optionalSource(config?.instructionSource, 'instructionSource', 'host')
@@ -895,6 +904,7 @@ export function apply(ctx, config) {
       ...PERSONA_SECTION_NAMES,
       ...(keepPlanPolicy ? [PLAN_POLICY_SECTION_NAME] : []),
       TEAM_POLICY_SECTION_NAME,
+      ...(keepFileReferenceSections ? FILE_REFERENCE_SECTION_NAMES : []),
       ...(wireHasRunCode ? PTC_SECTION_NAMES : []),
       ...keepSections,
     ])

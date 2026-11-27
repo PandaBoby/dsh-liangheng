@@ -356,25 +356,17 @@ function validateRetiredAnchorTools(value) {
  * - the shell (one of bash / pwsh per platform), the filesystem and discovery
  *   tools, the background-job controls, and the editor;
  * - the prompt/skill surface, the todo list, the user question tool, and
- *   `web_search` (the preset's own `tool-web` row configures `fetch: false`,
- *   so the session opens the search tool alone);
+ *   `web_search` and `web_fetch` (both enabled on `tool-web`), plus `present` for
+ *   final standalone deliverables;
  * - the preset's own `tool_activate` and `fact_register`;
  * - the READ-ONLY MCP resource tools, which the base composition mounts and
  *   which are reachable whenever the deployment registers an MCP server — even
  *   though a configured `mcp__*` server's tools are the ones paging withholds.
  *
- * Three names a reader might expect are deliberately ABSENT, because this
- * composition mounts no row that registers them and curating them would write a
- * catalog line for a tool surface the request never opens — exactly the claim
- * the declare-exactly-what-the-request-opens contract forbids:
- * - `present`: only the builtin Standard / PTC / Cordis compositions mount the
- *   `@deepseek-ai/dsh-tool-present` row, and the web app disables the host one;
- * - `web_fetch`: the per-session `tool-web` row below sets `fetch: false`,
- *   so this session opens `web_search` alone;
- * - `workflow`: the delegation group ships that row `disabled: true` so no
- *   second model-authored orchestration surface sits beside `run_code`.
- * The goal tools and `exit_plan_mode` ARE here, because the `tool-goal` and
- * `plan-mode` rows below mount them.
+ * `workflow` stays omitted (`disabled: true` on `tool-workflow`) so no second
+ * model-authored orchestration surface sits beside `subagent` / `run_code`.
+ * The goal tools, `present`, and `exit_plan_mode` ARE here, because the
+ * `tool-goal`, `present`, and `plan-mode` rows below mount them.
  *
  * `run_code` is also absent: it is the transport the harness adds for a code
  * presentation, not a row-mounted builtin, and the catalog never lists it as
@@ -417,6 +409,7 @@ export const CURATED_TOOL_SUMMARIES = new Map([
   ['ask_user_question', 'Ask the user a concise question and wait for the answer (`questions`: id, question, optional header, options, and custom input).'],
   ['web_search', 'Search the web for current information (up to ten `queries`); returns merged summaries and source URLs.'],
   ['web_fetch', 'Fetch a public HTTP(S) URL and extract readable content (`url`, optional extraction parameters).'],
+  ['present', 'Publish finished standalone deliverables (images, HTML pages, reports) as preview/open cards (`files`: `{ path, description }`); never call just to list edited source files.'],
   ['skill', 'Load the full instructions of one session skill (`name`); call it before acting on a task that names or matches a skill.'],
   ['tool_activate', 'Load one paged tool namespace back onto the wire and into the generated SDK (`namespace`, exactly as the catalog names it).'],
   ['fact_register', 'Pin one key fact into the working context (`fact`, optional `tag`), or unpin with `revoke`; at most twelve short facts stay pinned.'],

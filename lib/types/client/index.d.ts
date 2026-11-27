@@ -21,6 +21,7 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis';
 import type { ConfigForm, ConfigForms } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { type LiangShenSettings } from './LiangShenSettingsCard.tsx';
 import { type LiangShenKey } from './locales.ts';
+import './ChatPolish.module.css';
 /** Locale namespace this half owns. */
 export declare const NS = "liangheng";
 /**
@@ -78,6 +79,17 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
             kind: 'list';
             scope: 'root';
             owner: SettingsPluginItemOwnerProps;
+        };
+        /** Language-keyed layers around one Markdown fence in the Chat flow. */
+        'conversation.chat.markdown.fence': {
+            kind: 'hoc';
+            scope: 'session';
+            owner: {
+                lang: string;
+                code: string;
+                streaming: boolean;
+                meta?: string | undefined;
+            };
         };
     }
 }

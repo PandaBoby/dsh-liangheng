@@ -85,6 +85,7 @@ describe('readCompositionRows', () => {
     expect(catalog['pagedToolPatterns']).toEqual(['mcp__*', 'browser_*', 'task_board_*', 'team_*', 'squad*', 'ui_*', 'ssh_*'])
     expect(configOf(rowOf(rows(), 'tool-fs'))['applyPatch']).toBe(true)
     expect(configOf(rowOf(rows(), 'tool-web'))['fetch']).toBe(true)
+    expect(rowOf(rows(), 'present').name).toBe('@deepseek-ai/dsh-tool-present')
     expect(rowOf(rows(), 'tool-executor-ptc').disabled).toBe(true)
   })
 

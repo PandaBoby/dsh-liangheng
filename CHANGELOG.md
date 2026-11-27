@@ -3,6 +3,17 @@
 本文件格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循
 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [0.2.1] - 2026-11-27
+
+### Added
+
+- **输出排版、图文交付与 Mermaid 渲染增强**：
+  - `presets/liangheng/agent.cordis.yml`：挂载 `@deepseek-ai/dsh-tool-present`，并在 Persona 新增第 5 节输出排版与链接图表规范（首屏 `> **结论**` 导语卡、≥4 列防折行宽表、最小消歧路径链接、`「…」`/`→` 标点、Mermaid 流程图/时序图与本地图片展示规范）；
+  - `presets/liangheng/minimal-prompt.mjs`：默认放行宿主 `context:file-reference` 与 `ui:deliverable-file-references`（可通过 `keepFileReferenceSections` 开关），恢复 `@file`、本地图片内联及悬停缩略图引导；
+  - `presets/liangheng/tool-catalog.mjs`：为 `present` 补充策展摘要；
+  - `src/client/`：新增轻量零依赖 SVG Mermaid 渲染器（[mermaid-lite.ts](src/client/mermaid-lite.ts)、[MermaidFence.tsx](src/client/MermaidFence.tsx)，注册于 `conversation.chat.markdown.fence` 槽位，支持 `图表/源码` 切换、复制与放大预览）及 `liangheng` 会话作用域隔离的聊天视觉样式微调（[ChatPolish.module.css](src/client/ChatPolish.module.css)）。
+- `src/client/mermaid-lite.test.ts`：Mermaid 渲染器测试，测试总数 122 → 126。
+
 ## [0.2.0] - 2026-11-26
 
 首次发布到 npm：`dsh-liangheng@0.2.0`。新包首发经过 npm staged 审核，审核期间的占位版本

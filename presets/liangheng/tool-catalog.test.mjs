@@ -10,7 +10,7 @@ import {
 describe('tool-catalog defaults and curated summaries', () => {
   it('defaults presentation to native and curates DSH 0.2.2 coding tools', () => {
     expect(DEFAULT_PRESENTATION).toBe('native')
-    for (const toolName of ['apply_patch', 'working_directory', 'web_fetch', 'web_search', 'subagent']) {
+    for (const toolName of ['apply_patch', 'working_directory', 'web_fetch', 'web_search', 'subagent', 'present']) {
       expect(CURATED_TOOL_SUMMARIES.has(toolName), toolName).toBe(true)
     }
     const entries = catalogEntries([

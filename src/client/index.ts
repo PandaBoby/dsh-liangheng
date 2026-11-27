@@ -31,8 +31,11 @@ import { LiangShenLever } from './LiangShenLever.tsx'
 import { LeverController } from './lever-controller.ts'
 import { LiangShenSettingsCard, LiangShenSettingsCardController, type LiangShenSettings } from './LiangShenSettingsCard.tsx'
 import { en, zh, type LiangShenKey } from './locales.ts'
+import { mainViewSessionId } from './main-session.ts'
+import { MermaidFence } from './MermaidFence.tsx'
 import { installPluginCard } from './plugin-card-seat.ts'
 import { createServedEntryForm } from './settings-entry-form.ts'
+import './ChatPolish.module.css'
 
 /** Locale namespace this half owns. */
 export const NS = 'liangheng'
@@ -120,6 +123,12 @@ declare module '@deepseek-ai/dsh-client-ui-slots' {
      * package.
      */
     'web-ui.plugin.item': { kind: 'list'; scope: 'root'; owner: SettingsPluginItemOwnerProps }
+    /** Language-keyed layers around one Markdown fence in the Chat flow. */
+    'conversation.chat.markdown.fence': {
+      kind: 'hoc'
+      scope: 'session'
+      owner: { lang: string; code: string; streaming: boolean; meta?: string | undefined }
+    }
   }
 }
 
@@ -222,4 +231,61 @@ export function apply(ctx: ClientContext): void {
       return () => {}
     }
   })
+
+  // Render Mermaid code fences inside chat responses using our lightweight theme-aware SVG renderer.
+  ctx.slots.inject('conversation.chat.markdown.fence', () => {
+    try {
+      const unregister = ctx.slots.register({
+        name: 'conversation.chat.markdown.fence',
+        key: 'mermaid',
+        id: 'dsh-liangheng/fence/mermaid',
+        locale: NS,
+      }, MermaidFence)
+      return () => { unregister() }
+    } catch {
+      return () => {}
+    }
+  })
+
+  // Scope chat typography/table/image polish strictly to active LiangHeng sessions.
+  ctx.effect(() => {
+    if (typeof document === 'undefined') return () => {}
+    const root = document.documentElement
+    const sessionList = (() => {
+      try {
+        return (ctx as unknown as {
+          sessions?: {
+            list?: {
+              getSnapshot?: () => { byId?: Record<string, { id: string; retainedBy?: Partial<Record<string, number>>; projectionValues?: Record<string, unknown> } | undefined> }
+              subscribe?: (listener: () => void) => () => void
+            }
+          }
+        }).sessions?.list
+      } catch {
+        return undefined
+      }
+    })()
+    const syncChatAttribute = () => {
+      try {
+        const byId = sessionList?.getSnapshot?.()?.byId
+        const activeId = mainViewSessionId(byId)
+        const activePreset = activeId !== undefined ? byId?.[activeId]?.projectionValues?.['agentPreset'] : undefined
+        if (activePreset === 'liangheng') root.dataset.lianghengChat = 'on'
+        else delete root.dataset.lianghengChat
+      } catch {
+        delete root.dataset.lianghengChat
+      }
+    }
+    syncChatAttribute()
+    let unsubscribe: (() => void) | undefined
+    try {
+      unsubscribe = sessionList?.subscribe?.(syncChatAttribute)
+    } catch {
+      unsubscribe = undefined
+    }
+    return () => {
+      unsubscribe?.()
+      delete root.dataset.lianghengChat
+    }
+  }, 'liangheng: chat visual polish marker')
 }

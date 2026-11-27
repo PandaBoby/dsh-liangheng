@@ -49,6 +49,12 @@ export declare const zh: {
     'settings.invalidValue': string;
     'presentation.ptc': string;
     'presentation.native': string;
+    'diagram.graph': string;
+    'diagram.code': string;
+    'diagram.copy': string;
+    'diagram.copied': string;
+    'diagram.zoom': string;
+    'diagram.close': string;
 };
 /** English counterpart; the key set mirrors {@link zh} exactly. */
 export declare const en: Record<keyof typeof zh, string>;

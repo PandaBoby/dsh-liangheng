@@ -14,7 +14,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%3E%3D24.9.0-339933?style=flat-square&amp;logo=node.js&amp;logoColor=white" alt="Node" /></a>
   <a href="package.json"><img src="https://img.shields.io/badge/dsh-%3E%3D0.2.2--rc.3-4c6ef5?style=flat-square" alt="DSH" /></a>
   <img src="https://img.shields.io/badge/preset-liangheng-2b8a3e?style=flat-square" alt="Preset" />
-  <img src="https://img.shields.io/badge/tests-122%20passed-2b8a3e?style=flat-square" alt="Tests" />
+  <img src="https://img.shields.io/badge/tests-126%20passed-2b8a3e?style=flat-square" alt="Tests" />
   <a href="https://wenming7.cn/"><img src="https://img.shields.io/badge/sponsor-%E7%A8%B3%E6%98%8E%E5%85%89%E8%AF%AD%E7%BA%AA-ff69b4?style=flat-square&amp;logo=heart&amp;logoColor=white" alt="Sponsor: 稳明光语纪" /></a>
 </p>
 
@@ -43,8 +43,8 @@
 
 `dsh-liangheng` is an **independent focused-coding agent preset** for [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (aligned and verified on `0.2.2-rc.5`), derived from [LiangShen](docs/upstream/README.en.md). It ships with its own package name (`dsh-liangheng`), preset ID (`liangheng`), client UI slot (`liangheng-lever`), and settings/locale namespaces so it runs cleanly side-by-side with `@linxin666/dsh-liangshen`.
 
-1. **Lean Coding Persona (`dispatcher: false` by default)**: Replaces the 24.6 KB heavy coordinator block by default with a high-signal solo-first coding discipline + opportunistic parallel `subagent`/`subagent_fork` delegation, an intent gate (`ask_user_question` only on high-impact ambiguity), defensive external boundary alias compatibility, two-pass hypothesis fuses, strict YAGNI, and explicit Verified/Inferred/Unverified reporting.
-2. **Native Wire by Default (`presentation: 'native'`)**: Keeps the native roster on the wire for lower latency, native parallel tool calls, and streaming diff cards. Drops redundant `str_replace_editor`, enables `apply_patch` and `web_fetch`, and allows switching to `ptc` anytime in Settings.
+1. **Lean Coding Persona (`dispatcher: false` by default)**: Replaces the 24.6 KB heavy coordinator block by default with a high-signal solo-first coding discipline + opportunistic parallel `subagent`/`subagent_fork` delegation, an intent gate (`ask_user_question` only on high-impact ambiguity), defensive external boundary alias compatibility, two-pass hypothesis fuses, strict YAGNI, explicit Verified/Inferred/Unverified reporting, and Section 5 clean output formatting rules (`> **结论**` lead callout, wrap-safe `≥ 4`-column wide tables, disambiguated `[dir/file.tsx:24–30](<...>)` links, CJK typography, and Mermaid diagrams).
+2. **Native Wire by Default (`presentation: 'native'`) & Rich Visuals**: Keeps the native roster on the wire for lower latency, native parallel tool calls, and streaming diff cards. Drops redundant `str_replace_editor`, enables `apply_patch`, `web_fetch`, and `present` deliverable cards, preserves host file/image reference sections for inline/hover local images, and registers a zero-dependency theme-aware **Mermaid SVG fence renderer** + session-scoped chat visual polish (`data-liangheng-chat="on"`) on the client.
 3. **Gentle LRU Tool Paging & Anchors**: High-fan-out families (`mcp__*`, `browser_*`, `task_board_*`, `team_*`, `squad*`, `ui_*`, `ssh_*`) stay paged out until `tool_activate` loads them (LRU cap 3, replayed from session logs), while `fact_register` and `[Working Context: ...]` pin hard constraints across long sessions.
 4. **DSH `0.2.2-rc.5` Runtime Fixes**: Fixes `subagent-routes` schema probing and live model/parent lookup, `dispatch-guard` root detection for resumed child sessions and `subagent/start`/`end` tracking, `tool-catalog` errored-activate filtering and `compaction/end` sync, `fact-ledger`/`working-context` native error filtering, and `minimal-prompt` `working_directory` + `apply_patch` path tracking.
 
@@ -78,11 +78,12 @@ After merging **Defensive boundary compatibility** and stronger **Native paralle
 
 ## Test Scope and Verification Matrix
 
-### 1. Repository Unit & Composition Suite (12 Test Files / 122 Passing Tests)
+### 1. Repository Unit & Composition Suite (13 Test Files / 126 Passing Tests)
 
 - **Host & Lever UI**: [src/index.test.ts](src/index.test.ts), [src/announce.test.ts](src/announce.test.ts), [src/core/lever.test.ts](src/core/lever.test.ts) — `DSH_HOME` resolution, preset metadata, state store/toggle mechanics, compatibility aliases, and idempotent mounting (34 tests).
-- **Strict YAML Composition**: [src/composition.test.ts](src/composition.test.ts) — strict YAML parser guards, relative module URL resolution, 3-row paging invariant (`pagedToolPatterns` & `idleReclaimSteps`), and `native` ↔ `tool-executor-ptc` sync (29 tests).
-- **Paging & Runtime Plugins**: [presets/liangheng/paging.test.mjs](presets/liangheng/paging.test.mjs) (30 tests) + 7 module test suites covering `subagent-routes`, `dispatch-guard`, `fact-ledger`, `working-context`, `tool-activate`, `tool-catalog`, and `minimal-prompt` (29 tests).
+- **Strict YAML Composition**: [src/composition.test.ts](src/composition.test.ts) — strict YAML parser guards, relative module URL resolution, 3-row paging invariant (`pagedToolPatterns` & `idleReclaimSteps`), `present` mounting, and `native` ↔ `tool-executor-ptc` sync (29 tests).
+- **Client Mermaid SVG Renderer**: [src/client/mermaid-lite.test.ts](src/client/mermaid-lite.test.ts) — flowchart (with subgraphs, CJK & quoted labels, XML escaping), sequenceDiagram (messages, self-calls, Note, alt/else), stateDiagram-v2, and graceful fallback on unsupported diagram types (4 tests).
+- **Paging & Runtime Plugins**: [presets/liangheng/paging.test.mjs](presets/liangheng/paging.test.mjs) (30 tests) + 7 module test suites covering `subagent-routes`, `dispatch-guard`, `fact-ledger`, `working-context`, `tool-activate`, `tool-catalog` (`present` curation), and `minimal-prompt` (`file-reference` retention) (29 tests).
 
 ### 2. Full-Spectrum CLI Engineering Suite (6 Domains)
 
@@ -124,7 +125,7 @@ flowchart TB
   Q -->|tool_activate| W
 ```
 
-Resident tools cover platform shell (`bash`/`pwsh`), filesystem (`read`, `read_image`, `write`, `edit`, `apply_patch`, `glob`, `grep`), orchestration (`todo_write`, `ask_user_question`, `skill`, `plan`, `goal`, `fact_register`, `tool_activate`), delegation (`subagent`, `subagent_fork`, `send_message`, `list_agents`, `wait_agent`, `ralph`), and web (`web_search`, `web_fetch`). Result pruning aligns with `0.2.2-rc.5` at **8192 / 4096 / 1024** chars.
+Resident tools cover platform shell (`bash`/`pwsh`), filesystem (`read`, `read_image`, `write`, `edit`, `apply_patch`, `glob`, `grep`), orchestration (`todo_write`, `ask_user_question`, `skill`, `plan`, `goal`, `fact_register`, `tool_activate`, `present`), delegation (`subagent`, `subagent_fork`, `send_message`, `list_agents`, `wait_agent`, `ralph`), and web (`web_search`, `web_fetch`). Result pruning aligns with `0.2.2-rc.5` at **8192 / 4096 / 1024** chars.
 
 ---
 
@@ -169,6 +170,7 @@ Defaults live in [presets/liangheng/agent.cordis.yml](presets/liangheng/agent.co
 | `descriptionMaxLength` | `tool-catalog` | `200` | Max summary length for uncurated tools |
 | `instructionSource` | `minimal-prompt` | `host` | `AGENTS.md` delivery: `host` / `system-prompt` / `hint` |
 | `keepPlanPolicy` | `minimal-prompt` | `true` | Keeps `plan:policy` (also allows `team:policy`) |
+| `keepFileReferenceSections` | `minimal-prompt` | `true` | Retains `@file`, image/line link, and `present` guidance sections |
 
 ---
 
@@ -177,7 +179,7 @@ Defaults live in [presets/liangheng/agent.cordis.yml](presets/liangheng/agent.co
 ```sh
 npm run build                          # build JS, types, and inline CSS into lib/client.js
 npm run typecheck                      # tsc --noEmit -p tsconfig.json
-npm test                               # vitest run (12 test files, 122 tests)
+npm test                               # vitest run (13 test files, 126 tests)
 node tools/check-dispatcher-rules.mjs  # check dispatcher rules drift
 ```
 
