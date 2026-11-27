@@ -58,13 +58,14 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] li::marker {
   color: var(--dsw-alias-label-tertiary);
 }
 
-/* ── Blockquotes ───────────────────────────────────────────────────────── */
+/* ── Blockquotes ────────────────────────────────────────────────────────────
+   One rule and a quieter voice, no wash and no rounding: a tinted card behind
+   quoted text competes with the code blocks and tables around it. */
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote {
-  border-left: 3px solid var(--dsw-alias-state-business-primary, #4c6ef5);
-  background: var(--dsw-alias-state-business-bg, rgba(76, 110, 245, 0.06));
-  border-radius: 0 8px 8px 0;
-  padding: 10px 16px;
+  border-left: 2px solid var(--dsw-alias-border-l3);
+  color: var(--dsw-alias-label-secondary);
+  padding: 2px 0 2px 14px;
   margin: 14px 0;
 }
 
@@ -79,9 +80,9 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote > :l
 /* ── Code ──────────────────────────────────────────────────────────────── */
 
 /* One hairline around the whole block instead of the host's borderless slab, so
-   the banner row and the code area read as one card on either theme. */
+   the banner row and the code area share one rounded card. The border is gone:
+   the block already carries its own background token. */
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block {
-  border: 0.5px solid var(--dsw-alias-border-l1);
   border-radius: var(--dsl-code-block-border-radius, var(--dsw-radius-lg, 12px));
   overflow: hidden;
 }
@@ -101,7 +102,6 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block 
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] {
-  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
   background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent);
 }
 
@@ -164,7 +164,6 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] td :not(pre) > 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] img {
   border-radius: var(--dsw-radius-md, 8px);
   border: 0.5px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, 0.2));
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr {
@@ -174,8 +173,8 @@ html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr {
 /* ── Dark theme ────────────────────────────────────────────────────────────
    The aliases already flip with `body[data-ds-dark-theme]`; only the mixes
    need a second value, because 3–4% of white on a dark canvas is invisible
-   where 3–4% of black on white is a visible wash. Shadows also disappear on
-   dark, so the image edge is re-stated with the thin dark border token. */
+   where 3–4% of black on white is a visible wash. The image edge is the only
+   boundary a picture has, so it is re-stated with the thin dark token. */
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] thead th {
   background: color-mix(in srgb, var(--dsw-alias-label-primary) 12%, transparent);
@@ -187,9 +186,4 @@ html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="r
 
 html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] img {
   border-color: var(--dsw-alias-border-l2-darkmode-thin, var(--dsw-alias-border-l2));
-  box-shadow: none;
-}
-
-html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] blockquote {
-  background: var(--dsw-alias-state-business-bg, rgba(76, 110, 245, 0.1));
 }
