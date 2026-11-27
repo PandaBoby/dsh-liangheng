@@ -1,18 +1,21 @@
 /**
- * Inline the compiled stylesheet into the client chunk.
+ * Fold the extracted stylesheet into the client bundle's module factory.
  *
- * The host loads a plugin's browser half as a plain ES module, so an
- * `import './style.css'` inside it cannot resolve -- only a bundler understands
- * a CSS import. Upstream ships one self-contained client.js for the same
- * reason, so this step restores that shape after tsdown has compiled the CSS
- * modules: the class-name mapping is already inline, only the stylesheet text
- * is still a separate file.
+ * tsdown compiles `*.module.css` into a separate `lib/style.css` and leaves a
+ * bare `import './style.css'` in the bundle. The Web shell loads a plugin
+ * bundle as a classic <script> that only registers a factory, so that import is
+ * a syntax error there, and the <style> tag must also appear when the module
+ * system materializes the plugin — not when the script is parsed — because
+ * style ownership is claimed during materialization. The CSS therefore goes
+ * into the factory body, just before the closing `return module.exports`.
  */
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 
 const NL = String.fromCharCode(10)
 const cssPath = 'lib/style.css'
 const clientPath = 'lib/client.js'
+const FOOTER = 'return module.exports}});'
+const SOURCE_MAP_TRAILER = /^\/\/# sourceMappingURL=.*$/m
 
 if (!existsSync(cssPath) || !existsSync(clientPath)) {
   console.warn('[inline-css] no stylesheet emitted; nothing to inline')
@@ -20,29 +23,40 @@ if (!existsSync(cssPath) || !existsSync(clientPath)) {
 }
 
 const css = readFileSync(cssPath, 'utf8')
-const chunkLines = readFileSync(clientPath, 'utf8').split(NL)
-const head = chunkLines[0] === undefined ? '' : chunkLines[0]
+const lines = readFileSync(clientPath, 'utf8').split(NL)
+const head = lines[0] === undefined ? '' : lines[0]
 
 if (!head.startsWith('import') || !head.includes('style.css')) {
   console.warn('[inline-css] the client chunk carries no stylesheet import; leaving it alone')
   process.exit(0)
 }
 
-chunkLines.shift()
+lines.shift()
+const source = lines.join(NL)
+const at = source.lastIndexOf(FOOTER)
+if (at < 0) {
+  console.warn('[inline-css] the client bundle carries no module factory footer; leaving it alone')
+  process.exit(0)
+}
 
 const injection = [
   '',
-  'const __inlineStylesheet = ' + JSON.stringify(css),
-  "if (typeof document !== 'undefined') {",
-  "  const style = document.createElement('style')",
-  "  style.setAttribute('data-dsh-liangheng', '')",
-  '  style.textContent = __inlineStylesheet',
-  '  document.head.appendChild(style)',
+  '{',
+  '  const css = ' + JSON.stringify(css),
+  "  if (typeof document !== 'undefined') {",
+  "    const style = document.createElement('style')",
+  "    style.setAttribute('data-dsh-liangheng', '')",
+  '    style.textContent = css',
+  '    document.head.appendChild(style)',
+  '  }',
   '}',
   '',
-]
+].join(NL)
 
-writeFileSync(clientPath, chunkLines.join(NL) + injection.join(NL))
+writeFileSync(
+  clientPath,
+  (source.slice(0, at) + injection + source.slice(at)).replace(SOURCE_MAP_TRAILER, ''),
+)
 rmSync(cssPath)
 // A source map that no longer describes the text is worse than none.
 rmSync(clientPath + '.map', { force: true })
