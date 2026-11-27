@@ -3,6 +3,16 @@
 本文件格式参照 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循
 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Added
+
+- **图片存续纪律（Persona 第 5 节）**：`![](<path>)` 每次渲染都会重新读盘，路径失效即退化成
+  `图片无法预览` + alt 文案。`presets/liangheng/agent.cordis.yml` 因此新增一条规则：探针截图
+  与生成图落在工作区（gitignored `.probe/`），不落 `/tmp`、`$TMPDIR` 或任何后续清理会命中的
+  路径；`rm` 临时文件独立成一步，且不删正文仍在引用的路径；只对本轮有意义的证据改用
+  `read_image` 工具结果或 `present` 承载。`src/composition.test.ts` 增加对应断言（141 tests）。
+
 ## [0.2.1] - 2026-11-27
 
 ### Added

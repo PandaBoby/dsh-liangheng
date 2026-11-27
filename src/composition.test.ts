@@ -113,6 +113,19 @@ describe('readCompositionRows', () => {
     expect(prefix as string).not.toContain('- id: minimal-prompt')
   })
 
+  it('operator reads the image-survival rule beside the inline-image guidance', () => {
+    // Given the persona row shipped with this preset, When a session assembles
+    // its system prompt, Then an inline image carries the rule that keeps it
+    // visible: the file outlives the turn, never lives in /tmp, and no cleanup
+    // step deletes a path the reply still references.
+    const prefix = configOf(rowOf(rows(), 'persona'))['prefix'] as string
+    expect(prefix).toContain('re-read from disk on every render')
+    expect(prefix).toContain('gitignored `.probe/`')
+    expect(prefix).toContain('never `/tmp`')
+    expect(prefix).toContain('`rm` of temp files is its own step')
+    expect(prefix).toContain('「图片无法预览」')
+  })
+
   it('operator keeps a loader expression as data instead of executing it', () => {
     // Given the platform-conditional shell rows, When the operator reads them,
     // Then each `!!js` expression arrives as data for the Loader to evaluate.
