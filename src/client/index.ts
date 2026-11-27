@@ -35,7 +35,7 @@ import { mainViewSessionId } from './main-session.ts'
 import { MermaidFence } from './MermaidFence.tsx'
 import { installPluginCard } from './plugin-card-seat.ts'
 import { createServedEntryForm } from './settings-entry-form.ts'
-import './ChatPolish.module.css'
+import './ChatPolish.css'
 
 /** Locale namespace this half owns. */
 export const NS = 'liangheng'

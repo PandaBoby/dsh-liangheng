@@ -21,7 +21,7 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis';
 import type { ConfigForm, ConfigForms } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { type LiangShenSettings } from './LiangShenSettingsCard.tsx';
 import { type LiangShenKey } from './locales.ts';
-import './ChatPolish.module.css';
+import './ChatPolish.css';
 /** Locale namespace this half owns. */
 export declare const NS = "liangheng";
 /**

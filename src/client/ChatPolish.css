@@ -1,0 +1,186 @@
+/**
+ * Chat visual polish, scoped strictly to active `liangheng` sessions via
+ * `html[data-liangheng-chat="on"]`, leaving other presets untouched.
+ *
+ * A plain stylesheet, not a CSS module: every rule here is global by design and
+ * names no class of its own, and the bundler drops a module whose class map is
+ * never read — which is why an earlier `.module.css` version of this file
+ * silently contributed nothing to the bundle.
+ *
+ * The anchor is the transcript's own attribute, not a private class: the Chat
+ * seat marks every node wrapper with `data-chat-group-part`, and an assistant
+ * reply step is the only node that carries `response` (reasoning rows carry
+ * `reasoning`, user and tool nodes carry nothing). Global class hooks are only
+ * the ones the host itself uses as globals — `.md-code-block`,
+ * `.md-table-wide` and `[data-code-block-banner]` — because every other class
+ * in the transcript is a CSS-module hash that moves between releases.
+ */
+
+/* ── Headings and vertical rhythm ─────────────────────────────────────────
+   The host spends 32px above every heading, which is right for a document and
+   too airy for a reply read top to bottom. */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h1, h2, h3) {
+  margin: 28px 0 14px;
+  letter-spacing: -0.01em;
+}
+
+/* An h2 opens a section; the hairline makes that split visible without a box. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] h2 {
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(h4, h5, h6) {
+  margin: 20px 0 10px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] p {
+  margin: 12px 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(ul, ol) {
+  margin: 12px 0;
+  padding-left: 20px;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li:not(:first-child) {
+  margin-top: 4px;
+}
+
+/* The host gaps a list item's first paragraph at 8px; inside a list the item
+   already carries that gap, so the paragraph must not add its own. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li > p {
+  margin: 4px 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] li::marker {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* ── Blockquotes ───────────────────────────────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote {
+  border-left: 3px solid var(--dsw-alias-state-business-primary, #4c6ef5);
+  background: var(--dsw-alias-state-business-bg, rgba(76, 110, 245, 0.06));
+  border-radius: 0 8px 8px 0;
+  padding: 10px 16px;
+  margin: 14px 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote > :first-child {
+  margin-top: 0;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── Code ──────────────────────────────────────────────────────────────── */
+
+/* One hairline around the whole block instead of the host's borderless slab, so
+   the banner row and the code area read as one card on either theme. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block {
+  border: 0.5px solid var(--dsw-alias-border-l1);
+  border-radius: var(--dsl-code-block-border-radius, var(--dsw-radius-lg, 12px));
+  overflow: hidden;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block pre {
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+  tab-size: 2;
+}
+
+/* Ligatures are wrong in code: `->` and `!=` must not collapse into glyphs. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] .md-code-block pre code {
+  font-variant-ligatures: none;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] [data-code-block-banner] {
+  border-bottom: 0.5px solid var(--dsw-alias-border-l1);
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+}
+
+/* The host renders inline code as an inline-flex pill, which drops the space
+   around it and breaks mid-word on wrap. Inline keeps both. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :not(pre) > code {
+  display: inline;
+  border-radius: var(--dsw-radius-xs, 4px);
+  padding: 0 5px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* ── Tables ────────────────────────────────────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] table {
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] thead th {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+  white-space: nowrap;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* Zebra rows keep a wide four-column table hittable across its width. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 3%, transparent);
+}
+
+/* Declared after the zebra rule so hover still wins on an even row. */
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] tbody tr:hover {
+  background: var(--dsw-alias-interactive-bg-hover, rgba(127, 127, 127, 0.04));
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] :is(th, td) {
+  vertical-align: top;
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] td {
+  border-bottom-color: var(--dsw-alias-border-l1);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] td :not(pre) > code {
+  white-space: nowrap;
+}
+
+/* ── Media and dividers ────────────────────────────────────────────────── */
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] img {
+  border-radius: var(--dsw-radius-md, 8px);
+  border: 0.5px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, 0.2));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+html[data-liangheng-chat="on"] [data-chat-group-part="response"] hr {
+  margin: 24px 0;
+}
+
+/* ── Dark theme ────────────────────────────────────────────────────────────
+   The aliases already flip with `body[data-ds-dark-theme]`; only the mixes
+   need a second value, because 3–4% of white on a dark canvas is invisible
+   where 3–4% of black on white is a visible wash. Shadows also disappear on
+   dark, so the image edge is re-stated with the thin dark border token. */
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] thead th {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 8%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 5%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] [data-code-block-banner] {
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 7%, transparent);
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] img {
+  border-color: var(--dsw-alias-border-l2-darkmode-thin, var(--dsw-alias-border-l2));
+  box-shadow: none;
+}
+
+html[data-liangheng-chat="on"] body[data-ds-dark-theme] [data-chat-group-part="response"] blockquote {
+  background: var(--dsw-alias-state-business-bg, rgba(76, 110, 245, 0.1));
+}
